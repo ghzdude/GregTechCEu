@@ -205,6 +205,7 @@ public class Textures {
     public static final SimpleOverlayRenderer HATCH_OVERLAY = new SimpleOverlayRenderer("overlay/machine/overlay_hatch");
     public static final SimpleOverlayRenderer FLUID_FILTER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_fluid_filter");
     public static final SimpleOverlayRenderer ITEM_FILTER_FILTER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_item_filter");
+    public static final SimpleOverlayRenderer BIG_ITEM_FILTER_FILTER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_big_item_filter");
     public static final SimpleOverlayRenderer ORE_DICTIONARY_FILTER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_ore_dictionary_filter");
     public static final SimpleOverlayRenderer SMART_FILTER_FILTER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_smart_item_filter");
     public static final SimpleOverlayRenderer MACHINE_CONTROLLER_OVERLAY = new SimpleOverlayRenderer("cover/overlay_controller");

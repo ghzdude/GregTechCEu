@@ -332,7 +332,7 @@ public class MetaItem1 extends StandardMetaItem {
         ITEM_FILTER = addItem(291, "item_filter");
         ORE_DICTIONARY_FILTER = addItem(292, "ore_dictionary_filter");
         SMART_FILTER = addItem(293, "smart_item_filter");
-        BIG_ITEM_FILTER = addItem(294, "item_filter");
+        BIG_ITEM_FILTER = addItem(294, "big_item_filter");
 
         // Functional Covers: ID 301-330
         COVER_MACHINE_CONTROLLER = addItem(301, "cover.controller");

@@ -41,14 +41,13 @@ public class CoverBigItemFilter extends CoverBehavior implements CoverWithUI {
     protected final SimpleOverlayRenderer texture;
     protected final ItemFilter itemFilter;
     protected ItemFilterMode filterMode = ItemFilterMode.FILTER_INSERT;
-    // protected CoverItemFilter.ItemHandlerFiltered itemHandler;
+    protected ItemHandlerFiltered itemHandler;
 
     public CoverBigItemFilter(ICoverable coverHolder, EnumFacing attachedSide, String titleLocale, SimpleOverlayRenderer texture, ItemFilter itemFilter) {
         super(coverHolder, attachedSide);
         this.titleLocale = titleLocale;
         this.texture = texture;
         this.itemFilter = itemFilter;
-        //this.itemFilter.setItemFilter(itemFilter);
         this.itemFilter.setMaxStackSize(1);
     }
 
@@ -93,12 +92,12 @@ public class CoverBigItemFilter extends CoverBehavior implements CoverWithUI {
         Widget filterUI = itemFilter.createFilterUI(buildContext.getPlayer());
         int x = filterUI.getSize().width > 0 ? 88 - filterUI.getSize().width / 2 : 7;
         int height = filterUI.getSize().height > 0 ? 46 + SlotGroup.PLAYER_INVENTORY_HEIGHT + filterUI.getSize().height : 166;
-        return ModularWindow.builder(176, height)
+        return ModularWindow.builder(176, height + 18 + 5)
                 .setBackground(GuiTextures.VANILLA_BACKGROUND)
                 .bindPlayerInventory(buildContext.getPlayer())
                 .widget(new TextWidget(new Text(titleLocale).localise())
                         .setPos(6, 6))
-                .widget(new TextWidget(Text.localised("cover.filter_mode.label"))
+                .widget(new TextWidget(Text.localised("cover.big_filter_mode.label"))
                         .setTextAlignment(Alignment.CenterLeft)
                         .setSize(80, 14)
                         .setPos(7, 18))
@@ -114,6 +113,67 @@ public class CoverBigItemFilter extends CoverBehavior implements CoverWithUI {
 
     @Override
     public void renderCover(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline, Cuboid6 plateBox, BlockRenderLayer layer) {
+        this.texture.renderSided(attachedSide, plateBox, renderState, pipeline, translation);
+    }
 
+    @Override
+    public void writeToNBT(NBTTagCompound tagCompound) {
+        super.writeToNBT(tagCompound);
+        tagCompound.setInteger("FilterMode", filterMode.ordinal());
+        NBTTagCompound filterComponent = new NBTTagCompound();
+        this.itemFilter.writeToNBT(filterComponent);
+        tagCompound.setTag("Filter", filterComponent);
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound tagCompound) {
+        super.readFromNBT(tagCompound);
+        this.filterMode = ItemFilterMode.values()[tagCompound.getInteger("FilterMode")];
+        this.itemFilter.readFromNBT(tagCompound.getCompoundTag("Filter"));
+        // legacy
+        if (tagCompound.hasKey("IsBlacklist")) {
+            this.itemFilter.setInverted(tagCompound.getBoolean("IsBlacklist"));
+        }
+    }
+
+    @Override
+    public <T> T getCapability(Capability<T> capability, T defaultValue) {
+        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            IItemHandler delegate = (IItemHandler) defaultValue;
+            if (itemHandler == null || itemHandler.delegate != delegate) {
+                this.itemHandler = new ItemHandlerFiltered(delegate);
+            }
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(itemHandler);
+        }
+        return defaultValue;
+    }
+
+    private class ItemHandlerFiltered extends ItemHandlerDelegate {
+
+        public ItemHandlerFiltered(IItemHandler delegate) {
+            super(delegate);
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+            if (getFilterMode() == ItemFilterMode.FILTER_EXTRACT || !itemFilter.matches(stack)) {
+                return stack;
+            }
+            return super.insertItem(slot, stack, simulate);
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (getFilterMode() != ItemFilterMode.FILTER_INSERT) {
+                ItemStack result = super.extractItem(slot, amount, true);
+                if (result.isEmpty() || !itemFilter.matches(result)) {
+                    return ItemStack.EMPTY;
+                }
+                return simulate ? result : super.extractItem(slot, amount, false);
+            }
+            return super.extractItem(slot, amount, simulate);
+        }
     }
 }

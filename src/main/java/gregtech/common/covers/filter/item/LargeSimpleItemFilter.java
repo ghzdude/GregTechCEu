@@ -85,6 +85,7 @@ public class LargeSimpleItemFilter extends ItemFilter {
     @Nonnull
     @Override
     public Widget createFilterUI(EntityPlayer player) {
+
         MultiChildWidget widget = new MultiChildWidget();
         widget
                 .addChild(new CycleButtonWidget()
@@ -104,11 +105,12 @@ public class LargeSimpleItemFilter extends ItemFilter {
                         .setPos(103, 0)
                         .setSize(18, 18))
                 .addChild(createBlacklistButton(player));
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < MAX_MATCH_SLOTS; i++) {
             widget.addChild(SlotWidget.phantom(itemFilterSlots, i)
-                    .setPos(i % 9 * 18, i / 4 * 18));
+                    .setPos(i % 9 * 18, (Math.floorDiv(i, 9) * 18) + 18)
+            );
         }
-        return widget.setSize(140, 54);
+        return widget.setSize(140 + 18 + 4, 54 + 18);
     }
 
     @Override
