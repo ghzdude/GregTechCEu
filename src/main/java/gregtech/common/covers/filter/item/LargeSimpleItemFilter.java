@@ -110,7 +110,7 @@ public class LargeSimpleItemFilter extends ItemFilter {
                     .setPos(i % 9 * 18, (Math.floorDiv(i, 9) * 18) + 18)
             );
         }
-        return widget.setSize(140 + 18 + 4, 54 + 18);
+        return widget.setSize(140 + 18 + 4, 54 + 36);
     }
 
     @Override

@@ -800,6 +800,8 @@ metaitem.gravistar.tooltip=Ultimate Nether Star
 
 metaitem.item_filter.name=Item Filter
 metaitem.item_filter.tooltip=Filters item extract and insert (as Cover)/nCan be used as a Conveyor upgrade
+metaitem.big_item_filter.name=Big Item Filter
+metaitem.big_item_filter.tooltip=Filters item extract and insert (as Cover)/nCan be used as a Conveyor upgrade/n Can filter 36 different items
 metaitem.ore_dictionary_filter.name=Ore Dictionary Filter
 metaitem.ore_dictionary_filter.tooltip=Filters item extract and insert with ore dictionary (as Cover)/nCan be used as a Conveyor upgrade
 metaitem.fluid_filter.name=Fluid Filter
@@ -1130,6 +1132,8 @@ cover.item_filter.ignore_damage.enabled=Ignore Damage
 cover.item_filter.ignore_damage.disabled=Respect Damage
 cover.item_filter.ignore_nbt.enabled=Ignore NBT
 cover.item_filter.ignore_nbt.disabled=Respect NBT
+
+cover.big_item_filter.title=Big Item Filter
 
 cover.voiding.voiding_mode.name=Voiding Mode:
 cover.voiding.voiding_amount.name=Voiding Amount:

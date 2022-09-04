@@ -92,12 +92,12 @@ public class CoverBigItemFilter extends CoverBehavior implements CoverWithUI {
         Widget filterUI = itemFilter.createFilterUI(buildContext.getPlayer());
         int x = filterUI.getSize().width > 0 ? 88 - filterUI.getSize().width / 2 : 7;
         int height = filterUI.getSize().height > 0 ? 46 + SlotGroup.PLAYER_INVENTORY_HEIGHT + filterUI.getSize().height : 166;
-        return ModularWindow.builder(176, height + 18 + 5)
+        return ModularWindow.builder(176, height + 9 + 5)
                 .setBackground(GuiTextures.VANILLA_BACKGROUND)
                 .bindPlayerInventory(buildContext.getPlayer())
                 .widget(new TextWidget(new Text(titleLocale).localise())
                         .setPos(6, 6))
-                .widget(new TextWidget(Text.localised("cover.big_filter_mode.label"))
+                .widget(new TextWidget(Text.localised("cover.filter_mode.label"))
                         .setTextAlignment(Alignment.CenterLeft)
                         .setSize(80, 14)
                         .setPos(7, 18))
