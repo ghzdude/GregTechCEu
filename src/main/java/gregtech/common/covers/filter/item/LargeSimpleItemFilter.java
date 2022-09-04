@@ -107,10 +107,10 @@ public class LargeSimpleItemFilter extends ItemFilter {
                 .addChild(createBlacklistButton(player));
         for (int i = 0; i < MAX_MATCH_SLOTS; i++) {
             widget.addChild(SlotWidget.phantom(itemFilterSlots, i)
-                    .setPos(i % 9 * 18, (Math.floorDiv(i, 9) * 18) + 18)
+                    .setPos(i % 9 * 18, (Math.floorDiv(i, 9) * 18) + 18 + 3)
             );
         }
-        return widget.setSize(140 + 18 + 4, 54 + 36);
+        return widget.setSize(140 + 18 + 4, 54 + 36 + 3);
     }
 
     @Override
