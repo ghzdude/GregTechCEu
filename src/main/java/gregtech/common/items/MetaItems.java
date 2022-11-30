@@ -414,6 +414,7 @@ public final class MetaItems {
     public static MetaItem<?>.MetaValueItem GRAVI_STAR;
 
     public static MetaItem<?>.MetaValueItem ITEM_FILTER;
+    public static MetaItem<?>.MetaValueItem BIG_ITEM_FILTER;
     public static MetaItem<?>.MetaValueItem ORE_DICTIONARY_FILTER;
     public static MetaItem<?>.MetaValueItem SMART_FILTER;
 
