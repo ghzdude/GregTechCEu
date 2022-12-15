@@ -46,6 +46,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -61,7 +62,11 @@ import java.util.function.Consumer;
 import static gregtech.api.capability.GregtechDataCodes.*;
 import static net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack.FLUID_NBT_KEY;
 
-public class MetaTileEntityQuantumTank extends MetaTileEntity implements ITieredMetaTileEntity, IActiveOutputSide, IFastRenderMetaTileEntity {
+public class MetaTileEntityQuantumTank extends MetaTileEntityQuantumStorage<IFluidTank> implements ITieredMetaTileEntity, IActiveOutputSide, IFastRenderMetaTileEntity {
+
+    // This field (ranging from 1 to 99) is the percentage filled
+    // at which the Partial Void feature will start voiding Fluids.
+    private final int VOID_PERCENT = 95;
 
     private final int tier;
     private final int maxFluidCapacity;
@@ -654,5 +659,15 @@ public class MetaTileEntityQuantumTank extends MetaTileEntity implements ITiered
         public int getPriority() {
             return !locked || lockedFluid == null ? IFilter.noPriority() : IFilter.whitelistPriority(1);
         }
+    }
+
+    @Override
+    public Type getType() {
+        return Type.FLUID;
+    }
+
+    @Override
+    public IFluidTank getTypeValue() {
+        return fluidTank;
     }
 }
