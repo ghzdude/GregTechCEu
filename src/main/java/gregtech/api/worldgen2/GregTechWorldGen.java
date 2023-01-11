@@ -123,7 +123,7 @@ public class GregTechWorldGen {
 
         // it is very important that the seed is constant for run to run consistency with partially generated veins
         INSTANCE = new GregTechWorldGen(new XSTR(69420), definitions);
-        dimensionGridSize.put(0, (byte) 3);
+        dimensionGridSize.put(0, (byte) 5);
         dimensionGridSize.put(Integer.MAX_VALUE, (byte) 3); // for tests
 
         MinecraftForge.ORE_GEN_BUS.register(getInstance());
@@ -161,8 +161,15 @@ public class GregTechWorldGen {
         final int dimension = world.provider.getDimension();
 
         final byte gridSize = dimensionGridSize.get(dimension);
-        final int originX = getChunkOrigin(toChunkCoordinate(pos.getX()), gridSize);
-        final int originZ = getChunkOrigin(toChunkCoordinate(pos.getZ()), gridSize);
+        final int currentChunkX = toChunkCoordinate(pos.getX());
+        final int originX = getChunkOrigin(currentChunkX, gridSize);
+        // one chunk empty border around a chunk within a grid slot
+        if (Math.abs(Math.abs(currentChunkX) - Math.abs(originX * gridSize)) == gridSize / 2) return;
+
+        final int currentChunkZ = toChunkCoordinate(pos.getZ());
+        final int originZ = getChunkOrigin(currentChunkZ, gridSize);
+        // one chunk empty border around a chunk within a grid slot
+        if (Math.abs(Math.abs(currentChunkZ) - Math.abs(originZ * gridSize)) == gridSize / 2) return;
 
         if (!generatedChunks.containsKey(dimension)) {
             generatedChunks.put(dimension, new LongOpenHashSet());
