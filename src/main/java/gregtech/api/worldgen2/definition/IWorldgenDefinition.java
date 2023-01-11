@@ -1,7 +1,7 @@
 package gregtech.api.worldgen2.definition;
 
 import gregtech.api.worldgen2.context.IWorldgenContext;
-import gregtech.api.worldgen2.generator.IWorldGenerator;
+import gregtech.api.worldgen2.generator.IGTWorldGenerator;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -17,7 +17,7 @@ public interface IWorldgenDefinition<T extends IWorldgenContext> {
      * @return the generator for this definition
      */
     @Nonnull
-    IWorldGenerator<T> getGenerator();
+    IGTWorldGenerator<T> getGenerator();
 
     /**
      * @return the context for generation

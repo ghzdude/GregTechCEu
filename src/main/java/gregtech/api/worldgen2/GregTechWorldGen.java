@@ -1,11 +1,12 @@
 package gregtech.api.worldgen2;
 
 import com.google.common.base.Preconditions;
-import gregtech.api.GTValues;
+import gregtech.api.unification.material.Materials;
 import gregtech.api.util.GTLog;
-import gregtech.api.worldgen2.context.TestWorldgenContext;
+import gregtech.api.util.XSTR;
 import gregtech.api.worldgen2.definition.IWorldgenDefinition;
-import gregtech.api.worldgen2.definition.TestWorldgenDefinition;
+import gregtech.common.worldgen.context.MixedVeinContext;
+import gregtech.common.worldgen.definition.MixedVeinDefinition;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import net.minecraft.init.Blocks;
@@ -56,6 +57,10 @@ public class GregTechWorldGen {
      */
     private final Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions;
 
+    /**
+     * @param random the random for generating veins. It is very important that it has a seed constant from run to run.
+     * @param definitions the definitions to generate
+     */
     protected GregTechWorldGen(@Nonnull Random random, @Nonnull Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions) {
         this.random = random;
         Preconditions.checkArgument(!definitions.isEmpty(), "Definitions to generate must not be empty");
@@ -72,17 +77,44 @@ public class GregTechWorldGen {
         return INSTANCE;
     }
 
+    /**
+     * Set the random seed of the world generator, used to keep things consistent between world loads
+     * @param seed the seed to set
+     */
+    public void setRandomSeed(long seed) {
+        this.random.setSeed(seed);
+    }
+
     public static void init() {
         Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions = new Int2ObjectOpenHashMap<>();
         List<IWorldgenDefinition<?>> list = new ArrayList<>();
-        list.add(new TestWorldgenDefinition(new TestWorldgenContext(70, (short) 10, (short) 30, Blocks.IRON_BLOCK.getDefaultState())));
-        list.add(new TestWorldgenDefinition(new TestWorldgenContext(20, (short) 30, (short) 50, Blocks.GOLD_BLOCK.getDefaultState())));
-        list.add(new TestWorldgenDefinition(new TestWorldgenContext(10, (short) 50, (short) 70, Blocks.DIAMOND_BLOCK.getDefaultState())));
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(70, (byte) 10, (short) 30, (short) 40)
+                .entry(Blocks.IRON_BLOCK.getDefaultState(), 70)
+                .entry(Blocks.GOLD_BLOCK.getDefaultState(), 20)
+                .entry(Blocks.DIAMOND_BLOCK.getDefaultState(), 10)
+                .build()));
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(20, (byte) 70, (short) 30, (short) 40)
+                .entry(Blocks.PLANKS.getDefaultState(), 70)
+                .entry(Blocks.LOG.getDefaultState(), 20)
+                .entry(Blocks.LOG2.getDefaultState(), 10)
+                .build()));
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 30, (short) 40)
+                .entry(Blocks.BRICK_BLOCK.getDefaultState(), 70)
+                .entry(Blocks.WOOL.getDefaultState(), 20)
+                .entry(Blocks.CLAY.getDefaultState(), 10)
+                .build()));
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 60, (short) 70)
+                .entry(Materials.YellowLimonite, 70)
+                .entry(Materials.Pyrolusite, 20)
+                .entry(Materials.BlueTopaz, 10)
+                .build()));
+
         definitions.put(0, list);
 
-        INSTANCE = new GregTechWorldGen(GTValues.RNG, definitions);
+        // it is very important that the seed is constant for run to run consistency with partially generated veins
+        INSTANCE = new GregTechWorldGen(new XSTR(69420), definitions);
         dimensionGridSize.put(0, (byte) 3);
-        dimensionGridSize.put(Integer.MAX_VALUE, (byte) 3);
+        dimensionGridSize.put(Integer.MAX_VALUE, (byte) 3); // for tests
 
         MinecraftForge.ORE_GEN_BUS.register(getInstance());
     }
@@ -127,7 +159,7 @@ public class GregTechWorldGen {
             boolean generated = false;
             for (IWorldgenDefinition<?> object : this.definitions.get(dimension)) {
                 weight -= object.getContext().getWeight();
-                if (weight <= 0) {
+                if (weight <= 0) { //TODO sometimes things generate in the wrong place, find out why
                     // offset by 8 blocks to prevent cascading
                     generated = object.generate(world, random, pos.getX() + 8, pos.getZ() + 8);
                     if (generated) break;

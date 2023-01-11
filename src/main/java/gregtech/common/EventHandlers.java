@@ -9,6 +9,7 @@ import gregtech.api.util.CapesRegistry;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.VirtualTankRegistry;
 import gregtech.api.worldgen.bedrockFluids.BedrockFluidVeinSaveData;
+import gregtech.api.worldgen2.GregTechWorldGen;
 import gregtech.common.items.MetaItems;
 import gregtech.common.items.armor.IStepAssist;
 import gregtech.common.items.behaviors.ToggleEnergyConsumerBehavior;
@@ -27,6 +28,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
@@ -210,6 +212,11 @@ public class EventHandlers {
     public static void onWorldLoadEvent(WorldEvent.Load event) {
         VirtualTankRegistry.initializeStorage(event.getWorld());
         CapesRegistry.checkAdvancements(event.getWorld());
+        if (event.getWorld() instanceof WorldServer) {
+            // WorldEvent.Load is fired on both sides.
+            // Only change the seed server side so new clients joining a world don't cause weirdness
+            GregTechWorldGen.getInstance().setRandomSeed(event.getWorld().getSeed());
+        }
     }
 
     @SubscribeEvent
