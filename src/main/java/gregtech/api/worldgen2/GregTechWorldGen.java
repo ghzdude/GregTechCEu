@@ -4,8 +4,11 @@ import com.google.common.base.Preconditions;
 import gregtech.api.unification.material.Materials;
 import gregtech.api.util.GTLog;
 import gregtech.api.util.XSTR;
+import gregtech.api.worldgen2.context.IWorldgenContext;
 import gregtech.api.worldgen2.definition.IWorldgenDefinition;
+import gregtech.common.worldgen.context.LayeredVeinContext;
 import gregtech.common.worldgen.context.MixedVeinContext;
+import gregtech.common.worldgen.definition.LayeredVeinDefinition;
 import gregtech.common.worldgen.definition.MixedVeinDefinition;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
@@ -29,6 +32,11 @@ public class GregTechWorldGen {
      */
     private static final Int2ObjectMap<Long2IntFunction> randomValueCache = new Int2ObjectOpenHashMap<>();
     /**
+     * Caches the y-values.
+     * Is equivalent to {@code Map<DimensionId, Map<BlockPos, YValue>>}, with BlockPos being stored with {@link BlockPos#toLong()}
+     */
+    private static final Int2ObjectMap<Long2ShortFunction> yValueCache = new Int2ObjectOpenHashMap<>();
+    /**
      * Stores the chunks already generated in. This has entries removed when no longer needed.
      * Is equivalent to {@code Map<DimensionId, Set<BlockPos>>}, with BlockPos being stored with {@link BlockPos#toLong()}
      */
@@ -39,8 +47,8 @@ public class GregTechWorldGen {
      */
     private static final Int2ByteFunction dimensionGridSize = new Int2ByteOpenHashMap();
 
-
     private static GregTechWorldGen INSTANCE;
+
     /**
      * The random GT worldgen is based off of
      */
@@ -58,7 +66,7 @@ public class GregTechWorldGen {
     private final Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions;
 
     /**
-     * @param random the random for generating veins. It is very important that it has a seed constant from run to run.
+     * @param random      the random for generating veins. It is very important that it has a seed constant from run to run.
      * @param definitions the definitions to generate
      */
     protected GregTechWorldGen(@Nonnull Random random, @Nonnull Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions) {
@@ -77,36 +85,38 @@ public class GregTechWorldGen {
         return INSTANCE;
     }
 
-    /**
-     * Set the random seed of the world generator, used to keep things consistent between world loads
-     * @param seed the seed to set
-     */
-    public void setRandomSeed(long seed) {
-        this.random.setSeed(seed);
-    }
-
     public static void init() {
         Int2ObjectMap<List<IWorldgenDefinition<?>>> definitions = new Int2ObjectOpenHashMap<>();
         List<IWorldgenDefinition<?>> list = new ArrayList<>();
-        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(70, (byte) 10, (short) 30, (short) 40)
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(70, (byte) 10, (short) 30, (short) 40, (short) 16)
                 .entry(Blocks.IRON_BLOCK.getDefaultState(), 70)
                 .entry(Blocks.GOLD_BLOCK.getDefaultState(), 20)
                 .entry(Blocks.DIAMOND_BLOCK.getDefaultState(), 10)
                 .build()));
-        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(20, (byte) 70, (short) 30, (short) 40)
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(20, (byte) 70, (short) 30, (short) 40, (short) 10)
                 .entry(Blocks.PLANKS.getDefaultState(), 70)
                 .entry(Blocks.LOG.getDefaultState(), 20)
                 .entry(Blocks.LOG2.getDefaultState(), 10)
                 .build()));
-        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 30, (short) 40)
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 30, (short) 40, (short) 8)
                 .entry(Blocks.BRICK_BLOCK.getDefaultState(), 70)
                 .entry(Blocks.WOOL.getDefaultState(), 20)
                 .entry(Blocks.CLAY.getDefaultState(), 10)
                 .build()));
-        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 60, (short) 70)
+        list.add(new MixedVeinDefinition(new MixedVeinContext.Builder(10, (byte) 40, (short) 60, (short) 70, (short) 12)
                 .entry(Materials.YellowLimonite, 70)
                 .entry(Materials.Pyrolusite, 20)
                 .entry(Materials.BlueTopaz, 10)
+                .build()));
+        list.add(new LayeredVeinDefinition(new LayeredVeinContext.Builder(20, (byte) 40, (short) 30, (short) 40)
+                .entry(new LayeredVeinContext.Entry.Builder(LayeredVeinContext.Type.TOP)
+                        .placeable(Materials.Powellite))
+                .entry(new LayeredVeinContext.Entry.Builder(LayeredVeinContext.Type.MIDDLE)
+                        .placeable(Materials.Scheelite))
+                .entry(new LayeredVeinContext.Entry.Builder(LayeredVeinContext.Type.BOTTOM)
+                        .placeable(Materials.Ruby))
+                .entry(new LayeredVeinContext.Entry.Builder(LayeredVeinContext.Type.SPREAD)
+                        .placeable(Materials.BlueTopaz))
                 .build()));
 
         definitions.put(0, list);
@@ -131,6 +141,15 @@ public class GregTechWorldGen {
 
     public static int toChunkCoordinate(int coordinate) {
         return coordinate / 16;
+    }
+
+    /**
+     * Set the random seed of the world generator, used to keep things consistent between world loads
+     *
+     * @param seed the seed to set
+     */
+    public void setRandomSeed(long seed) {
+        this.random.setSeed(seed);
     }
 
     @SubscribeEvent
@@ -158,10 +177,12 @@ public class GregTechWorldGen {
             int weight = getGenerationWeightForPos(dimension, pos);
             boolean generated = false;
             for (IWorldgenDefinition<?> object : this.definitions.get(dimension)) {
-                weight -= object.getContext().getWeight();
+                IWorldgenContext context = object.getContext();
+                weight -= context.getWeight();
                 if (weight <= 0) { //TODO sometimes things generate in the wrong place, find out why
+                    final short startY = getStartYForContext(dimension, pos, context);
                     // offset by 8 blocks to prevent cascading
-                    generated = object.generate(world, random, pos.getX() + 8, pos.getZ() + 8);
+                    generated = object.generate(world, random, pos.getX() + 8, pos.getZ() + 8, startY);
                     if (generated) break;
                 }
             }
@@ -206,19 +227,43 @@ public class GregTechWorldGen {
      */
     private int getGenerationWeightForPos(int dimension, @Nonnull BlockPos pos) {
         final byte gridSize = dimensionGridSize.get(dimension);
-        int x = getChunkOrigin(toChunkCoordinate(pos.getX()), gridSize);
-        int z = getChunkOrigin(toChunkCoordinate(pos.getZ()), gridSize);
+        final int x = getChunkOrigin(toChunkCoordinate(pos.getX()), gridSize);
+        final int z = getChunkOrigin(toChunkCoordinate(pos.getZ()), gridSize);
 
-        long chunkPos = new BlockPos(x * 16, 0, z * 16).toLong();
         if (!randomValueCache.containsKey(dimension)) {
             randomValueCache.put(dimension, new Long2IntOpenHashMap());
         }
 
+        long chunkPos = new BlockPos(x * 16, 0, z * 16).toLong();
         Long2IntFunction randomCache = randomValueCache.get(dimension);
         if (!randomCache.containsKey(chunkPos)) {
             randomCache.put(chunkPos, random.nextInt(totalWeight.get(dimension)));
         }
 
         return randomCache.get(chunkPos);
+    }
+
+    /**
+     * @param dimension the dimension to generate in
+     * @param pos       the block pos to start generation in
+     * @param context   the context to retrieve y information from
+     * @return the starting y value for a worldgen object
+     */
+    private short getStartYForContext(int dimension, @Nonnull BlockPos pos, @Nonnull IWorldgenContext context) {
+        final byte gridSize = dimensionGridSize.get(dimension);
+        final int x = getChunkOrigin(toChunkCoordinate(pos.getX()), gridSize);
+        final int z = getChunkOrigin(toChunkCoordinate(pos.getZ()), gridSize);
+
+        if (!yValueCache.containsKey(dimension)) {
+            yValueCache.put(dimension, new Long2ShortOpenHashMap());
+        }
+
+        long chunkPos = new BlockPos(x * 16, 0, z * 16).toLong();
+        Long2ShortFunction yCache = yValueCache.get(dimension);
+        if (!yCache.containsKey(chunkPos)) {
+            yCache.put(chunkPos, (short) (context.getMinY() + random.nextInt(context.getMaxY() - context.getMinY())));
+        }
+
+        return yCache.get(chunkPos);
     }
 }

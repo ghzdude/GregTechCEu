@@ -18,12 +18,17 @@ public interface IWorldgenContext {
     byte getDensity();
 
     /**
-     * @return the minimum y value for generation
+     * @return the min y value for generation
      */
     short getMinY();
 
     /**
-     * @return the maximum y value for generation
+     * @return the max y value for generation
      */
     short getMaxY();
+
+    /**
+     * @return the height for generation
+     */
+    short getHeight();
 }

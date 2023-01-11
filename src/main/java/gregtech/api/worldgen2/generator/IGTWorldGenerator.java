@@ -8,6 +8,7 @@ import java.util.Random;
 
 /**
  * A generator which places blocks in the world for an {@link gregtech.api.worldgen.config.IWorldgenDefinition}
+ *
  * @param <T> the context used to generate with
  */
 @FunctionalInterface
@@ -21,9 +22,10 @@ public interface IGTWorldGenerator<T extends IWorldgenContext> {
      * @param random  the random to use
      * @param startX  the starting X coordinate to generate in, already offset to prevent cascading
      * @param startZ  the starting Z coordinate to generate in, already offset to prevent cascading
+     * @param startY  the starting Y coordinate to generate in
      * @return if generation was successful
      */
-    boolean generate(@Nonnull T context, @Nonnull World world, @Nonnull Random random, int startX, int startZ);
+    boolean generate(@Nonnull T context, @Nonnull World world, @Nonnull Random random, int startX, int startZ, short startY);
 
     /**
      * @return if this generator is allowed to replace air blocks

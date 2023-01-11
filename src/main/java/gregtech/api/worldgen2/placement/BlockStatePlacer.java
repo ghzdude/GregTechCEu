@@ -55,4 +55,12 @@ public class BlockStatePlacer implements IWorldgenPlaceable {
         BlockStatePlacer that = (BlockStatePlacer) o;
         return state.equals(that.getState());
     }
+
+    @Override
+    public String toString() {
+        return "BlockStatePlacer{" +
+                "state=" + state +
+                ", replacementPredicate=" + replacementPredicate +
+                '}';
+    }
 }

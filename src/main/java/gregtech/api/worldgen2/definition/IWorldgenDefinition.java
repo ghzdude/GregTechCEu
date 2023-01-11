@@ -32,9 +32,10 @@ public interface IWorldgenDefinition<T extends IWorldgenContext> {
      * @param random the random to generate with
      * @param startX the starting x coordinate, adjusted for cascading
      * @param startZ the starting z coordinate, adjusted for cascading
+     * @param startY the starting y coordinate
      * @return if generation was successful
      */
-    default boolean generate(@Nonnull World world, @Nonnull Random random, int startX, int startZ) {
-        return getGenerator().generate(getContext(), world, random, startX, startZ);
+    default boolean generate(@Nonnull World world, @Nonnull Random random, int startX, int startZ, short startY) {
+        return getGenerator().generate(getContext(), world, random, startX, startZ, startY);
     }
 }

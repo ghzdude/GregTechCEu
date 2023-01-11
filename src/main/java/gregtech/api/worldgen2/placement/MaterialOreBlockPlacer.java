@@ -51,4 +51,11 @@ public class MaterialOreBlockPlacer implements IWorldgenPlaceable {
     public int hashCode() {
         return material.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "MaterialOreBlockPlacer{" +
+                "material=" + material +
+                '}';
+    }
 }
