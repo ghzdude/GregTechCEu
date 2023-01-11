@@ -25,6 +25,7 @@ import gregtech.api.util.input.KeyBind;
 import gregtech.api.worldgen.bedrockFluids.BedrockFluidVeinHandler;
 import gregtech.api.worldgen.bedrockFluids.BedrockFluidVeinSaveData;
 import gregtech.api.worldgen.config.WorldGenRegistry;
+import gregtech.api.worldgen2.GregTechWorldGen;
 import gregtech.common.CommonProxy;
 import gregtech.common.ConfigHolder;
 import gregtech.common.MetaEntities;
@@ -39,7 +40,7 @@ import gregtech.common.covers.filter.FilterTypeRegistry;
 import gregtech.common.items.MetaItems;
 import gregtech.common.items.ToolItems;
 import gregtech.common.metatileentities.MetaTileEntities;
-import gregtech.common.worldgen.LootTableHelper;
+import gregtech.common.worldgen.loot.LootTableHelper;
 import gregtech.core.advancement.AdvancementTriggers;
 import gregtech.core.advancement.internal.AdvancementManager;
 import gregtech.core.command.internal.CommandManager;
@@ -210,6 +211,7 @@ public class CoreModule implements IGregTechModule {
         }
 
         WorldGenRegistry.INSTANCE.initializeRegistry();
+        GregTechWorldGen.init();
 
         LootTableHelper.initialize();
         FilterTypeRegistry.init();

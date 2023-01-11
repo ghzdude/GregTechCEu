@@ -1,4 +1,4 @@
-package gregtech.common.worldgen;
+package gregtech.common.worldgen.loot;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
