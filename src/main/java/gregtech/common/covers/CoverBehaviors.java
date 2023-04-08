@@ -10,10 +10,7 @@ import gregtech.api.items.metaitem.MetaItem.MetaValueItem;
 import gregtech.api.util.GTLog;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.common.covers.detector.*;
-import gregtech.common.covers.filter.OreDictionaryItemFilter;
-import gregtech.common.covers.filter.SimpleFluidFilter;
-import gregtech.common.covers.filter.SimpleItemFilter;
-import gregtech.common.covers.filter.SmartItemFilter;
+import gregtech.common.covers.filter.*;
 import gregtech.common.items.MetaItems;
 import gregtech.common.items.behaviors.CoverDigitalInterfaceWirelessPlaceBehaviour;
 import gregtech.common.items.behaviors.CoverPlaceBehavior;
@@ -49,6 +46,7 @@ public class CoverBehaviors {
 
         registerBehavior(new ResourceLocation(GTValues.MODID, "ore_dictionary_filter"), MetaItems.ORE_DICTIONARY_FILTER, (tile, side) -> new CoverItemFilter(tile, side, "cover.ore_dictionary_filter.title", Textures.ORE_DICTIONARY_FILTER_OVERLAY, new OreDictionaryItemFilter()));
         registerBehavior(new ResourceLocation(GTValues.MODID, "item_filter"), MetaItems.ITEM_FILTER, (tile, side) -> new CoverItemFilter(tile, side, "cover.item_filter.title", Textures.ITEM_FILTER_FILTER_OVERLAY, new SimpleItemFilter()));
+        registerBehavior(new ResourceLocation(GTValues.MODID, "big_item_filter"), MetaItems.BIG_ITEM_FILTER, (tile, side) -> new CoverBigItemFilter(tile, side, "cover.big_item_filter.title", Textures.ITEM_FILTER_FILTER_OVERLAY, new BigItemFilter()));
         registerBehavior(new ResourceLocation(GTValues.MODID, "fluid_filter"), MetaItems.FLUID_FILTER, (tile, side) -> new CoverFluidFilter(tile, side, "cover.fluid_filter.title", Textures.FLUID_FILTER_OVERLAY, new SimpleFluidFilter()));
         registerBehavior(new ResourceLocation(GTValues.MODID, "shutter"), MetaItems.COVER_SHUTTER, CoverShutter::new);
 

@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 public class ItemFilterContainer implements INBTSerializable<NBTTagCompound> {
 
-    private final ItemStackHandler filterInventory;
+    protected final ItemStackHandler filterInventory;
     private final ItemFilterWrapper filterWrapper;
     private int maxStackSizeLimit = 1;
     private int transferStackSize;
@@ -55,7 +55,7 @@ public class ItemFilterContainer implements INBTSerializable<NBTTagCompound> {
         return filterWrapper;
     }
 
-    private void onFilterInstanceChange() {
+    protected void onFilterInstanceChange() {
         this.filterWrapper.setMaxStackSize(getTransferStackSize());
     }
 

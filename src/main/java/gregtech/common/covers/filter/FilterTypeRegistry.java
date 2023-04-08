@@ -22,6 +22,7 @@ public class FilterTypeRegistry {
         registerItemFilter(2, SimpleItemFilter.class, MetaItems.ITEM_FILTER.getStackForm());
         registerItemFilter(3, OreDictionaryItemFilter.class, MetaItems.ORE_DICTIONARY_FILTER.getStackForm());
         registerItemFilter(4, SmartItemFilter.class, MetaItems.SMART_FILTER.getStackForm());
+        registerItemFilter(5, BigItemFilter.class, MetaItems.BIG_ITEM_FILTER.getStackForm());
     }
 
     public static void registerFluidFilter(int id, Class<? extends FluidFilter> fluidFilterClass, ItemStack itemStack) {

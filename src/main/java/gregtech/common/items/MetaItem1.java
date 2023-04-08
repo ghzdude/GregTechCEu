@@ -488,6 +488,8 @@ public class MetaItem1 extends StandardMetaItem {
                 .setMaterialInfo(new ItemMaterialInfo(new MaterialStack(Materials.Zinc, M * 2)));
         ITEM_FILTER = addItem(291, "item_filter")
                 .setMaterialInfo(new ItemMaterialInfo(new MaterialStack(Materials.Zinc, M * 2), new MaterialStack(Materials.Steel, M)));
+        BIG_ITEM_FILTER = addItem(294, "big_item_filter")
+                .setMaterialInfo(new ItemMaterialInfo(new MaterialStack(Materials.Zinc, M * 2), new MaterialStack(Materials.Steel, M)));
         ORE_DICTIONARY_FILTER = addItem(292, "ore_dictionary_filter")
                 .setMaterialInfo(new ItemMaterialInfo(new MaterialStack(Materials.Zinc, M * 2)));
         SMART_FILTER = addItem(293, "smart_item_filter")
