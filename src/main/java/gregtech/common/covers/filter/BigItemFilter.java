@@ -8,6 +8,7 @@ import gregtech.api.util.LargeStackSizeItemStackHandler;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Consumer;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 public class BigItemFilter extends SimpleItemFilter {
 
     private static final int MAX_MATCH_SLOTS = 9 * 3;
-    protected final ItemStackHandler itemFilterSlots;
+    protected final IItemHandlerModifiable itemFilterSlots;
 
 
     public BigItemFilter() {
