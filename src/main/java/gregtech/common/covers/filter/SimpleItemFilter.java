@@ -89,9 +89,9 @@ public class SimpleItemFilter extends ItemFilter {
         for (int i = 0; i < 9; i++) {
             widgetGroup.accept(new PhantomSlotWidget(itemFilterSlots, i, 10 + 18 * (i % 3), 18 * (i / 3)).setBackgroundTexture(GuiTextures.SLOT));
         }
-        widgetGroup.accept(new ToggleButtonWidget(74, 0, 20, 20, GuiTextures.BUTTON_FILTER_DAMAGE,
+        widgetGroup.accept(new ToggleButtonWidget(74, -1, 20, 20, GuiTextures.BUTTON_FILTER_DAMAGE,
                 () -> ignoreDamage, this::setIgnoreDamage).setTooltipText("cover.item_filter.ignore_damage"));
-        widgetGroup.accept(new ToggleButtonWidget(99, 0, 20, 20, GuiTextures.BUTTON_FILTER_NBT,
+        widgetGroup.accept(new ToggleButtonWidget(94, -1, 20, 20, GuiTextures.BUTTON_FILTER_NBT,
                 () -> ignoreNBT, this::setIgnoreNBT).setTooltipText("cover.item_filter.ignore_nbt"));
 
     }

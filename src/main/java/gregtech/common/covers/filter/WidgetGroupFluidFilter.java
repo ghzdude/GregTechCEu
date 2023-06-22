@@ -13,7 +13,7 @@ public class WidgetGroupFluidFilter extends AbstractWidgetGroup {
     private FluidFilter fluidFilter;
 
     public WidgetGroupFluidFilter(int yPosition, Supplier<FluidFilter> fluidFilterSupplier, Supplier<Boolean> showTipSupplier) {
-        super(new Position(18 + 5, yPosition));
+        super(new Position(0, yPosition));
         this.fluidFilterSupplier = fluidFilterSupplier;
         this.showTipSupplier = showTipSupplier;
     }
