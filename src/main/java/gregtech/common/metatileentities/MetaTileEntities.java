@@ -697,15 +697,17 @@ public class MetaTileEntities {
 
         // Super / Quantum Chests, IDs 1559-1574, 1751
         QUANTUM_STORAGE_CONTROLLER = registerMetaTileEntity(1559, new MetaTileEntityQuantumStorageController(gregtechId("quantum_storage_controller")));
+
         QUANTUM_CHEST[0] = new MetaTileEntityQuantumChest(gregtechId("super_chest." + GTValues.VN[GTValues.ULV].toLowerCase()), 0, 1000000L);
         registerMetaTileEntity(1751, QUANTUM_CHEST[0]);
+
         for (int i = 1; i < 6; i++) {
             String voltageName = GTValues.VN[i].toLowerCase();
-            QUANTUM_CHEST[i] = new MetaTileEntityQuantumChest(gregtechId("super_chest." + voltageName), i, 4000000L * (int) Math.pow(2, i));
+            QUANTUM_CHEST[i] = new MetaTileEntityQuantumChest(gregtechId("super_chest." + voltageName), i, 4000000L * (int) Math.pow(2, i - 1));
             registerMetaTileEntity(1559 + i, QUANTUM_CHEST[i]);
         }
 
-        for (int i = 6; i < QUANTUM_CHEST.length; i++) {
+        for (int i = 6; i < QUANTUM_CHEST.length - 1; i++) {
             String voltageName = GTValues.VN[i].toLowerCase();
             long capacity = i == GTValues.UHV ? Integer.MAX_VALUE : 4000000L * (int) Math.pow(2, i);
             QUANTUM_CHEST[i] = new MetaTileEntityQuantumChest(gregtechId("quantum_chest." + voltageName), i, capacity);
