@@ -701,8 +701,6 @@ public class MetaTileEntities {
         registerMetaTileEntity(1751, QUANTUM_CHEST[0]);
         for (int i = 1; i < 6; i++) {
             String voltageName = GTValues.VN[i].toLowerCase();
-//            long maxStoredItems = i == GTValues.ULV ? 1000000L : 4000000L * (int) Math.pow(2, i);
-//            int id = i == GTValues.ULV ? 1751 : 1559 + i;
             QUANTUM_CHEST[i] = new MetaTileEntityQuantumChest(gregtechId("super_chest." + voltageName), i, 4000000L * (int) Math.pow(2, i));
             registerMetaTileEntity(1559 + i, QUANTUM_CHEST[i]);
         }
