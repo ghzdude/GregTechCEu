@@ -552,19 +552,19 @@ public class MetaTileEntityQuantumChest extends MetaTileEntityQuantumStorage<IIt
 
     @Override
     public IItemHandler getTypeValue() {
-        return new ItemHandlerProxy(getItemInventory(), getExportItems()) {
-            @Override
-            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-                return getImportItems().isItemValid(slot, stack);
-            }
-
-            @Nonnull
-            @Override
-            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-                if (!isItemValid(slot, stack)) return stack;
-                return super.insertItem(slot, stack, simulate);
-            }
-        };
+        return this.itemInventory;
+//            @Override
+//            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+//                return getImportItems().isItemValid(slot, stack);
+//            }
+//
+//            @NotNull
+//            @Override
+//            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+//                if (!isItemValid(slot, stack)) return stack;
+//                return super.insertItem(slot, stack, simulate);
+//            }
+//        };
     }
 
     @Override
@@ -617,6 +617,11 @@ public class MetaTileEntityQuantumChest extends MetaTileEntityQuantumStorage<IIt
                 }
             }
             return extractedStack;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            return getImportItems().isItemValid(0, stack);
         }
 
         @Nonnull
