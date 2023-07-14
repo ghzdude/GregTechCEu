@@ -552,7 +552,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntityQuantumStorage<IIt
 
     @Override
     public IItemHandler getTypeValue() {
-        return itemInventory;
+        return combinedInventory;
     }
 
     @Override
