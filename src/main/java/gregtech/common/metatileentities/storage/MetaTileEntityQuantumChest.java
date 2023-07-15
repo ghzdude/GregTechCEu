@@ -624,11 +624,6 @@ public class MetaTileEntityQuantumChest extends MetaTileEntityQuantumStorage<IIt
             return extractedStack;
         }
 
-        @Override
-        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return getImportItems().isItemValid(0, stack);
-        }
-
         @Nonnull
         @Override
         public ItemStack insertItem(int slot, @Nonnull ItemStack insertedStack, boolean simulate) {
