@@ -1,25 +1,30 @@
 package gregtech.common.metatileentities.storage;
 
+import codechicken.lib.raytracer.CuboidRayTraceResult;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.ColourMultiplier;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
+import gregtech.api.capability.IActiveOutputSide;
 import gregtech.api.capability.impl.FilteredFluidHandler;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.widgets.TankWidget;
+import gregtech.api.gui.widgets.ToggleButtonWidget;
 import gregtech.api.metatileentity.ITieredMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.api.util.GTUtility;
+import gregtech.client.utils.RenderUtil;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
@@ -30,13 +35,21 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class MetaTileEntityBuffer extends MetaTileEntity implements ITieredMetaTileEntity {
+import static gregtech.api.capability.GregtechDataCodes.*;
+
+public class MetaTileEntityBuffer extends MetaTileEntity implements ITieredMetaTileEntity, IActiveOutputSide {
 
     private static final int TANK_SIZE = 64000;
     private final int tier;
 
     private FluidTankList fluidTankList;
     private ItemStackHandler itemStackHandler;
+    private boolean autoOutputFluids = false;
+    private boolean autoOutputItems = false;
+    private boolean allowInOnFluidOut = false;
+    private boolean allowInOnItemOout = false;
+    private EnumFacing itemOutputFacing = getFrontFacing().getOpposite();
+    private EnumFacing fluidOutputFacing = itemOutputFacing;
 
     public MetaTileEntityBuffer(ResourceLocation metaTileEntityId, int tier) {
         super(metaTileEntityId);
@@ -83,6 +96,14 @@ public class MetaTileEntityBuffer extends MetaTileEntity implements ITieredMetaT
             }
         }
         return builder.label(6, 6, getMetaFullName())
+                .widget(new ToggleButtonWidget(7, 53, 18, 18,
+                        GuiTextures.BUTTON_ITEM_OUTPUT, this::isAutoOutputItems, this::setAutoOutputItems)
+                        .shouldUseBaseBackground()
+                        .setTooltipText("gregtech.gui.item_auto_output.tooltip"))
+                .widget(new ToggleButtonWidget(7 + 18, 53, 18, 18,
+                        GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids)
+                        .shouldUseBaseBackground()
+                        .setTooltipText("gregtech.gui.fluid_auto_output.tooltip"))
                 .bindPlayerInventory(entityPlayer.inventory, GuiTextures.SLOT, 8, 18 + 18 * invTier + 12)
                 .build(getHolder(), entityPlayer);
     }
@@ -98,6 +119,19 @@ public class MetaTileEntityBuffer extends MetaTileEntity implements ITieredMetaT
                 new ColourMultiplier(GTUtility.convertRGBtoOpaqueRGBA_CL(getPaintingColorForRendering()))));
         for (EnumFacing facing : EnumFacing.VALUES) {
             Textures.BUFFER_OVERLAY.renderSided(facing, renderState, translation, pipeline);
+        }
+        Textures.PIPE_OUT_OVERLAY.renderSided(itemOutputFacing, renderState, translation, pipeline);
+        if (fluidOutputFacing != null) {
+            Textures.PIPE_OUT_OVERLAY.renderSided(fluidOutputFacing, renderState, RenderUtil.adjustTrans(translation, fluidOutputFacing, 2), pipeline);
+        }
+        if (itemOutputFacing != null) {
+            Textures.PIPE_OUT_OVERLAY.renderSided(itemOutputFacing, renderState, RenderUtil.adjustTrans(translation, itemOutputFacing, 2), pipeline);
+        }
+        if (isAutoOutputItems() && itemOutputFacing != null) {
+            Textures.ITEM_OUTPUT_OVERLAY.renderSided(itemOutputFacing, renderState, RenderUtil.adjustTrans(translation, itemOutputFacing, 2), pipeline);
+        }
+        if (isAutoOutputFluids() && fluidOutputFacing != null) {
+            Textures.FLUID_OUTPUT_OVERLAY.renderSided(fluidOutputFacing, renderState, RenderUtil.adjustTrans(translation, fluidOutputFacing, 2), pipeline);
         }
     }
 
@@ -146,5 +180,65 @@ public class MetaTileEntityBuffer extends MetaTileEntity implements ITieredMetaT
     @Override
     public void clearMachineInventory(NonNullList<ItemStack> itemBuffer) {
         clearInventory(itemBuffer, itemStackHandler);
+    }
+
+    public void setOutputFacing(EnumFacing outputFacing) {
+        this.itemOutputFacing = outputFacing;
+        this.fluidOutputFacing = outputFacing;
+        if (!getWorld().isRemote) {
+            notifyBlockUpdate();
+            writeCustomData(UPDATE_OUTPUT_FACING, buf -> buf.writeByte(outputFacing.getIndex()));
+            markDirty();
+        }
+    }
+
+    @Override
+    public boolean onWrenchClick(EntityPlayer playerIn, EnumHand hand, EnumFacing wrenchSide, CuboidRayTraceResult hitResult) {
+        if (!playerIn.isSneaking()) {
+            if (getFrontFacing().getOpposite() == wrenchSide) {
+                return false;
+            }
+            if (!getWorld().isRemote) {
+                setOutputFacing(wrenchSide);
+            }
+            return true;
+        }
+        return super.onWrenchClick(playerIn, hand, wrenchSide, hitResult);
+    }
+
+    @Override
+    public boolean isAutoOutputItems() {
+        return this.autoOutputItems;
+    }
+
+    public void setAutoOutputItems(boolean autoOutputItems) {
+        this.autoOutputItems = autoOutputItems;
+        if (!getWorld().isRemote) {
+            writeCustomData(UPDATE_AUTO_OUTPUT_ITEMS, buf -> buf.writeBoolean(autoOutputItems));
+            markDirty();
+        }
+    }
+
+    @Override
+    public boolean isAutoOutputFluids() {
+        return this.autoOutputFluids;
+    }
+
+    public void setAutoOutputFluids(boolean autoOutputFluids) {
+        this.autoOutputFluids = autoOutputFluids;
+        if (!getWorld().isRemote) {
+            writeCustomData(UPDATE_AUTO_OUTPUT_FLUIDS, buf -> buf.writeBoolean(autoOutputFluids));
+            markDirty();
+        }
+    }
+
+    @Override
+    public boolean isAllowInputFromOutputSideItems() {
+        return this.allowInOnItemOout;
+    }
+
+    @Override
+    public boolean isAllowInputFromOutputSideFluids() {
+        return this.allowInOnFluidOut;
     }
 }
