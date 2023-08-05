@@ -382,6 +382,24 @@ public class MetaTileEntityLoader {
                 'S', MetaItems.SENSOR_MV.getStackForm()
         );
 
+        // Quantum Storage Proxy
+        ModHandler.addShapedRecipe(true, "quantum_storage_proxy", MetaTileEntities.QUANTUM_STORAGE_PROXY.getStackForm(),
+                "PEP", "ACA", "PHP",
+                'P', new UnificationEntry(OrePrefix.plate, Materials.Aluminium),
+                'E', MetaItems.EMITTER_MV.getStackForm(),
+                'C', new UnificationEntry(OrePrefix.pipeNormalItem, Materials.Cobalt),
+                'A', MetaItems.ROBOT_ARM_MV.getStackForm(),
+                'H', MetaTileEntities.HULL[GTValues.MV].getStackForm()
+        );
+
+        // Quantum Storage Extender
+        ModHandler.addShapedRecipe(true, "quantum_storage_controller", MetaTileEntities.QUANTUM_STORAGE_CONTROLLER.getStackForm(),
+                "PPP", "CHC", "PPP",
+                'P', new UnificationEntry(OrePrefix.plate, Materials.Aluminium),
+                'C', new UnificationEntry(OrePrefix.pipeNormalItem, Materials.Cobalt),
+                'H', MetaTileEntities.HULL[GTValues.MV].getStackForm()
+        );
+
         // Super / Quantum Chests
         ModHandler.addShapedRecipe(true, "super_chest_ulv", MetaTileEntities.QUANTUM_CHEST[10].getStackForm(), "CPC", "PFP", "CPC", 'C', new UnificationEntry(OrePrefix.circuit, Tier.ULV), 'P', new UnificationEntry(OrePrefix.plate, Materials.Steel), 'F', MetaTileEntities.BRONZE_CRATE.getStackForm());
         ModHandler.addShapedRecipe(true, "super_chest_lv", MetaTileEntities.QUANTUM_CHEST[0].getStackForm(), "CPC", "PFP", "CPC", 'C', new UnificationEntry(OrePrefix.circuit, Tier.LV), 'P', new UnificationEntry(OrePrefix.plate, Materials.Steel), 'F', MetaTileEntities.STEEL_CRATE.getStackForm());
