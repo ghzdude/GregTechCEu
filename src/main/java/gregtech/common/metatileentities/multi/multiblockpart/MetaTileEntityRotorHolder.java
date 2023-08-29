@@ -6,6 +6,7 @@ import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
 import gregtech.api.capability.GregtechDataCodes;
 import gregtech.api.capability.IRotorHolder;
+import gregtech.api.capability.impl.NotifiableItemStackHandler;
 import gregtech.api.damagesources.DamageSources;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
@@ -31,7 +32,6 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,7 +52,7 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
 
     public MetaTileEntityRotorHolder(ResourceLocation metaTileEntityId, int tier) {
         super(metaTileEntityId, tier);
-        this.inventory = new InventoryRotorHolder();
+        this.inventory = new InventoryRotorHolder(null);
         this.maxSpeed = 2000 + 1000 * tier;
     }
 
@@ -337,10 +337,10 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
                 getController() != null, hasRotor(), isRotorSpinning, getRotorColor());
     }
 
-    private class InventoryRotorHolder extends ItemStackHandler {
+    private class InventoryRotorHolder extends NotifiableItemStackHandler {
 
-        public InventoryRotorHolder() {
-            super(1);
+        public InventoryRotorHolder(MetaTileEntity metaTileEntity) {
+            super(1, metaTileEntity, false);
         }
 
         @Override
@@ -354,9 +354,13 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
         }
 
         @Override
-        protected void onContentsChanged(int slot) {
+        public void onContentsChanged(int slot) {
+            if (!notifiableEntities.contains(getController())) {
+                addNotifiableMetaTileEntity(getController());
+            }
             setRotorColor(getRotorColor());
             scheduleRenderUpdate();
+            super.onContentsChanged(slot);
         }
 
         @Nullable
@@ -411,6 +415,11 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
             if (!hasRotor()) return;
             //noinspection ConstantConditions
             getTurbineBehavior().applyRotorDamage(getStackInSlot(0), damageAmount);
+
+            if (getStackInSlot(0).isEmpty()) {
+                // setRotorColor(-1);
+                scheduleRenderUpdate();
+            }
         }
 
         @Override

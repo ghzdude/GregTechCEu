@@ -10,7 +10,7 @@ import java.util.List;
 
 public class NotifiableItemStackHandler extends ItemStackHandler implements IItemHandlerModifiable, INotifiableHandler {
 
-    List<MetaTileEntity> notifiableEntities = new ArrayList<>();
+    protected List<MetaTileEntity> notifiableEntities = new ArrayList<>();
     private final boolean isExport;
 
     public NotifiableItemStackHandler(int slots, MetaTileEntity entityToNotify, boolean isExport) {
