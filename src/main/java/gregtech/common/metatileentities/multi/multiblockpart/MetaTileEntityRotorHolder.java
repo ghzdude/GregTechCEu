@@ -52,7 +52,7 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
 
     public MetaTileEntityRotorHolder(ResourceLocation metaTileEntityId, int tier) {
         super(metaTileEntityId, tier);
-        this.inventory = new InventoryRotorHolder(null);
+        this.inventory = new InventoryRotorHolder();
         this.maxSpeed = 2000 + 1000 * tier;
     }
 
@@ -339,8 +339,8 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockPart impl
 
     private class InventoryRotorHolder extends NotifiableItemStackHandler {
 
-        public InventoryRotorHolder(MetaTileEntity metaTileEntity) {
-            super(1, metaTileEntity, false);
+        public InventoryRotorHolder() {
+            super(1, null, false);
         }
 
         @Override
