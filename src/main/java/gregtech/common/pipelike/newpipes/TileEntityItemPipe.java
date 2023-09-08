@@ -4,9 +4,6 @@ import gregtech.api.pipenet.tile.IPipeTile;
 import gregtech.api.unification.material.properties.ItemPipeProperties;
 import gregtech.api.util.FacingPos;
 import gregtech.common.pipelike.itempipe.ItemPipeType;
-import gregtech.common.pipelike.itempipe.net.ItemNetHandler;
-import gregtech.common.pipelike.itempipe.net.ItemPipeNet;
-import gregtech.common.pipelike.itempipe.net.WorldItemPipeNet;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -84,12 +81,15 @@ public class TileEntityItemPipe extends TileEntityMaterialPipeBase<ItemPipeType,
         if (currentPipeNet != null && currentPipeNet.isValid() &&
                 currentPipeNet.containsNode(getPipePos()))
             return currentPipeNet; //if current net is valid and does contain position, return it
-        WorldItemPipeNet worldFluidPipeNet = (WorldItemPipeNet) getPipeBlock().getWorldPipeNet(getPipeWorld());
-        currentPipeNet = worldFluidPipeNet.getNetFromPos(getPipePos());
-        if (currentPipeNet != null) {
-            this.currentPipeNet = new WeakReference<>(currentPipeNet);
-        }
-        return currentPipeNet;
+
+        //todo fix this
+        return null;
+//        WorldItemPipeNet worldFluidPipeNet = (WorldItemPipeNet) getPipeBlock().getWorldPipeNet(getPipeWorld());
+//        currentPipeNet = worldFluidPipeNet.getNetFromPos(getPipePos());
+//        if (currentPipeNet != null) {
+//            this.currentPipeNet = new WeakReference<>(currentPipeNet);
+//        }
+//        return currentPipeNet;
     }
 
     public void resetTransferred() {

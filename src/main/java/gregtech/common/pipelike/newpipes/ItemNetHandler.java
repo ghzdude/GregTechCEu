@@ -7,9 +7,6 @@ import gregtech.api.util.FacingPos;
 import gregtech.api.util.GTTransferUtils;
 import gregtech.api.util.ItemStackHashStrategy;
 import gregtech.common.covers.*;
-import gregtech.common.pipelike.itempipe.net.ItemPipeNet;
-import gregtech.common.pipelike.itempipe.tile.TileEntityItemPipe;
-import gregtech.common.pipelike.itempipe.tile.TileEntityItemPipeTickable;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -24,7 +21,7 @@ import java.util.*;
 
 public class ItemNetHandler implements IItemHandler {
 
-    private gregtech.common.pipelike.itempipe.net.ItemPipeNet net;
+    private ItemPipeNet net;
     private TileEntityItemPipe pipe;
     private TileEntityItemPipeTickable tickingPipe;
     private final World world;
@@ -33,18 +30,18 @@ public class ItemNetHandler implements IItemHandler {
     private int simulatedTransfers = 0;
     private final ItemStackHandler testHandler = new ItemStackHandler(1);
 
-    public ItemNetHandler(gregtech.common.pipelike.itempipe.net.ItemPipeNet net, TileEntityItemPipe pipe, EnumFacing facing) {
+    public ItemNetHandler(ItemPipeNet net, TileEntityItemPipe pipe, EnumFacing facing) {
         this.net = net;
         this.pipe = pipe;
         this.facing = facing;
         this.world = pipe.getWorld();
     }
 
-    public void updateNetwork(gregtech.common.pipelike.itempipe.net.ItemPipeNet net) {
+    public void updateNetwork(ItemPipeNet net) {
         this.net = net;
     }
 
-    public gregtech.common.pipelike.itempipe.net.ItemPipeNet getNet() {
+    public ItemPipeNet getNet() {
         return net;
     }
 
@@ -104,7 +101,7 @@ public class ItemNetHandler implements IItemHandler {
     }
 
     public ItemStack insertFirst(ItemStack stack, boolean simulate) {
-        for (gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory inv : net.getNetData(pipe.getPipePos(), facing)) {
+        for (ItemPipeNet.Inventory inv : net.getNetData(pipe.getPipePos(), facing)) {
             stack = insert(inv, stack, simulate);
             if (stack.isEmpty())
                 return ItemStack.EMPTY;
@@ -113,12 +110,12 @@ public class ItemNetHandler implements IItemHandler {
     }
 
     public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
-        List<gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory> handlers = net.getNetData(pipe.getPipePos(), facing);
+        List<ItemPipeNet.Inventory> handlers = net.getNetData(pipe.getPipePos(), facing);
         if (handlers.size() == 0)
             return stack;
         if (handlers.size() == 1)
             return insert(handlers.get(0), stack, simulate);
-        List<gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory> handlersCopy = new ArrayList<>(handlers);
+        List<ItemPipeNet.Inventory> handlersCopy = new ArrayList<>(handlers);
         int original = stack.getCount();
 
         if (global) {
@@ -141,14 +138,14 @@ public class ItemNetHandler implements IItemHandler {
      * @param simulate simulate
      * @return remainder
      */
-    private ItemStack insertToHandlers(List<gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory> copy, ItemStack stack, boolean simulate) {
-        Iterator<gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory> handlerIterator = copy.listIterator();
+    private ItemStack insertToHandlers(List<ItemPipeNet.Inventory> copy, ItemStack stack, boolean simulate) {
+        Iterator<ItemPipeNet.Inventory> handlerIterator = copy.listIterator();
         int inserted = 0;
         int count = stack.getCount();
         int c = count / copy.size();
         int m = c == 0 ? count % copy.size() : 0;
         while (handlerIterator.hasNext()) {
-            gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler = handlerIterator.next();
+            ItemPipeNet.Inventory handler = handlerIterator.next();
 
             int amount = c;
             if (m > 0) {
@@ -176,14 +173,14 @@ public class ItemNetHandler implements IItemHandler {
         return remainder;
     }
 
-    private ItemStack insertToHandlersEnhanced(List<gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory> copy, ItemStack stack, int dest, boolean simulate) {
+    private ItemStack insertToHandlersEnhanced(List<ItemPipeNet.Inventory> copy, ItemStack stack, int dest, boolean simulate) {
         LinkedList<EnhancedRoundRobinData> transferred = new LinkedList<>();
         LinkedList<Integer> steps = new LinkedList<>();
         int min = Integer.MAX_VALUE;
         ItemStack simStack;
 
         // find inventories that are not full and get the amount that was inserted in total
-        for (gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory inv : copy) {
+        for (ItemPipeNet.Inventory inv : copy) {
             simStack = stack.copy();
             int ins = stack.getCount() - insert(inv, simStack, true, true).getCount();
             if (ins <= 0)
@@ -288,11 +285,11 @@ public class ItemNetHandler implements IItemHandler {
         return remainder;
     }
 
-    public ItemStack insert(gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler, ItemStack stack, boolean simulate) {
+    public ItemStack insert(ItemPipeNet.Inventory handler, ItemStack stack, boolean simulate) {
         return insert(handler, stack, simulate, false);
     }
 
-    public ItemStack insert(gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler, ItemStack stack, boolean simulate, boolean ignoreLimit) {
+    public ItemStack insert(ItemPipeNet.Inventory handler, ItemStack stack, boolean simulate, boolean ignoreLimit) {
         int allowed = ignoreLimit ? stack.getCount() : checkTransferable(handler.getProperties().getTransferRate(), stack.getCount(), simulate);
         if (allowed == 0 || !handler.matchesFilters(stack)) {
             return stack;
@@ -441,7 +438,7 @@ public class ItemNetHandler implements IItemHandler {
         return 64;
     }
 
-    private void transferTo(gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler, boolean simulate, int amount) {
+    private void transferTo(ItemPipeNet.Inventory handler, boolean simulate, int amount) {
         if (simulate)
             simulatedTransfersGlobalRoundRobin.merge(handler.toFacingPos(), amount, Integer::sum);
         else
@@ -449,11 +446,11 @@ public class ItemNetHandler implements IItemHandler {
 
     }
 
-    private boolean contains(gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler, boolean simulate) {
+    private boolean contains(ItemPipeNet.Inventory handler, boolean simulate) {
         return simulate ? simulatedTransfersGlobalRoundRobin.containsKey(handler.toFacingPos()) : pipe.getTransferred().containsKey(handler.toFacingPos());
     }
 
-    private int didTransferTo(gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory handler, boolean simulate) {
+    private int didTransferTo(ItemPipeNet.Inventory handler, boolean simulate) {
         if (simulate)
             return simulatedTransfersGlobalRoundRobin.getOrDefault(handler.toFacingPos(), 0);
         return pipe.getTransferred().getOrDefault(handler.toFacingPos(), 0);
@@ -473,7 +470,7 @@ public class ItemNetHandler implements IItemHandler {
     }
 
     private static class EnhancedRoundRobinData {
-        private final gregtech.common.pipelike.itempipe.net.ItemPipeNet.Inventory inventory;
+        private final ItemPipeNet.Inventory inventory;
         private final int maxInsertable;
         private int transferred;
         private int toTransfer = 0;

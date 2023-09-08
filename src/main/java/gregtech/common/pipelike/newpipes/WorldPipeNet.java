@@ -1,6 +1,5 @@
 package gregtech.common.pipelike.newpipes;
 
-import gregtech.api.pipenet.Node;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
