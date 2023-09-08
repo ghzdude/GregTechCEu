@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
-public abstract class WorldPipeNet<NodeDataType, T extends PipeNet<NodeDataType>> extends WorldSavedData {
+public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSavedData {
 
     private WeakReference<World> worldRef = new WeakReference<>(null);
     protected List<T> pipeNets = new ArrayList<>();
@@ -45,13 +45,13 @@ public abstract class WorldPipeNet<NodeDataType, T extends PipeNet<NodeDataType>
         this.pipeNets.forEach(PipeNet::onNodeConnectionsUpdate);
     }
 
-    public void addNode(BlockPos nodePos, NodeDataType nodeData, int mark, int openConnections, boolean isActive) {
+    public void addNode(BlockPos nodePos, NDT nodeData, int mark, int openConnections, boolean isActive) {
         T myPipeNet = null;
-        Node<NodeDataType> node = new Node<>(nodeData, openConnections, mark, isActive);
+        Node<NDT> node = new Node<>(nodeData, openConnections, mark, isActive);
         for (EnumFacing facing : EnumFacing.VALUES) {
             BlockPos offsetPos = nodePos.offset(facing);
             T pipeNet = getNetFromPos(offsetPos);
-            Node<NodeDataType> secondNode = pipeNet == null ? null : pipeNet.getAllNodes().get(offsetPos);
+            Node<NDT> secondNode = pipeNet == null ? null : pipeNet.getAllNodes().get(offsetPos);
             if (pipeNet != null && pipeNet.canAttachNode(nodeData) &&
                     pipeNet.canNodesConnect(secondNode, facing.getOpposite(), node, null)) {
                 if (myPipeNet == null) {
