@@ -118,6 +118,7 @@ public abstract class BlockPipe<PipeType extends Enum<PipeType> & IPipeType<Node
     public abstract WorldPipeNetType getWorldPipeNet(World world);
 
     public abstract TileEntityPipeBase<PipeType, NodeDataType> createNewTileEntity(boolean supportsTicking);
+    public abstract gregtech.common.pipelike.newpipes.TileEntityPipeBase<PipeType, NodeDataType> createNewTileEntity2(boolean supportsTicking);
 
     public abstract NodeDataType createProperties(IPipeTile<PipeType, NodeDataType> pipeTile);
 
