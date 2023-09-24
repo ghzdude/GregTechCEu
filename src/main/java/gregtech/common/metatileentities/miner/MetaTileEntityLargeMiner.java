@@ -1,11 +1,10 @@
-package gregtech.common.metatileentities.multi.electric;
+package gregtech.common.metatileentities.miner;
 
 import gregtech.api.GTValues;
 import gregtech.api.capability.*;
 import gregtech.api.capability.impl.EnergyContainerList;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
-import gregtech.api.capability.impl.miner.MultiblockMinerLogic;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.Widget;
@@ -24,22 +23,18 @@ import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.recipes.RecipeMaps;
-import gregtech.api.unification.material.Material;
 import gregtech.api.unification.material.Materials;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.TextComponentUtil;
 import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.Textures;
-import gregtech.common.blocks.BlockMetalCasing;
+import gregtech.common.blocks.BlockMetalCasing.MetalCasingType;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.core.sound.GTSoundEvents;
-
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -63,75 +58,54 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static gregtech.api.unification.material.Materials.DrillingFluid;
 
 public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                                       implements IMiner, IControllable, IDataInfoProvider {
 
-    private static final int CHUNK_LENGTH = 16;
-
-    private final Material material;
-    private final int tier;
+    @NotNull
+    public final ILargeMinerType type;
+    public final int tier;
+    public final int drillingFluidConsumePerTick;
+    private final MultiblockMinerLogic minerLogic;
 
     private IEnergyContainer energyContainer;
     protected IMultipleTankHandler inputFluidInventory;
     protected IItemHandlerModifiable outputInventory;
 
-    private boolean silkTouch = false;
-    private boolean chunkMode = false;
-
-    private boolean isInventoryFull = false;
-
-    private final int drillingFluidConsumePerTick;
-
-    private final MultiblockMinerLogic minerLogic;
-
-    public MetaTileEntityLargeMiner(ResourceLocation metaTileEntityId, int tier, int speed, int maximumChunkDiameter,
-                                    int fortune, Material material, int drillingFluidConsumePerTick) {
+    public MetaTileEntityLargeMiner(ResourceLocation metaTileEntityId, int tier, int speed, int maxChunkDiameter,
+                                    int fortune, int drillingFluidConsumePerTick, @NotNull ILargeMinerType type) {
         super(metaTileEntityId);
-        this.material = material;
+        this.type = Objects.requireNonNull(type, "type == null");
         this.tier = tier;
         this.drillingFluidConsumePerTick = drillingFluidConsumePerTick;
-        this.minerLogic = new MultiblockMinerLogic(this, fortune, speed, maximumChunkDiameter * CHUNK_LENGTH / 2,
-                RecipeMaps.MACERATOR_RECIPES);
+        this.minerLogic = new MultiblockMinerLogic(this, fortune, speed, maxChunkDiameter, RecipeMaps.MACERATOR_RECIPES);
     }
 
     @Override
     public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityLargeMiner(metaTileEntityId, this.tier, this.minerLogic.getSpeed(),
-                this.minerLogic.getMaximumRadius() * 2 / CHUNK_LENGTH, this.minerLogic.getFortune(), getMaterial(),
-                getDrillingFluidConsumePerTick());
+        return new MetaTileEntityLargeMiner(metaTileEntityId, this.tier, this.minerLogic.getWorkFrequency(),
+                this.minerLogic.getMaximumChunkDiameter(),
+                this.minerLogic.getFortune(), this.drillingFluidConsumePerTick, this.type);
     }
 
     @Override
     public void invalidateStructure() {
         super.invalidateStructure();
-        resetTileAbilities();
-        if (this.minerLogic.isActive())
-            this.minerLogic.setActive(false);
+        this.inputFluidInventory = new FluidTankList(true);
+        this.outputInventory = new ItemStackHandler(0);
+        this.energyContainer = new EnergyContainerList(Lists.newArrayList());
     }
 
     @Override
     protected void formStructure(PatternMatchContext context) {
         super.formStructure(context);
-        initializeAbilities();
-    }
-
-    private void initializeAbilities() {
         this.inputFluidInventory = new FluidTankList(false, getAbilities(MultiblockAbility.IMPORT_FLUIDS));
         this.outputInventory = new ItemHandlerList(getAbilities(MultiblockAbility.EXPORT_ITEMS));
         this.energyContainer = new EnergyContainerList(getAbilities(MultiblockAbility.INPUT_ENERGY));
-        this.minerLogic.setVoltageTier(GTUtility.getTierByVoltage(this.energyContainer.getInputVoltage()));
-        this.minerLogic.setOverclockAmount(
-                Math.max(1, GTUtility.getTierByVoltage(this.energyContainer.getInputVoltage()) - this.tier));
-        this.minerLogic.initPos(getPos(), this.minerLogic.getCurrentRadius());
-    }
-
-    private void resetTileAbilities() {
-        this.inputFluidInventory = new FluidTankList(true);
-        this.outputInventory = new GTItemStackHandler(this, 0);
-        this.energyContainer = new EnergyContainerList(Lists.newArrayList());
+        this.minerLogic.reset();
     }
 
     public int getEnergyTier() {
@@ -141,33 +115,44 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public boolean drainEnergy(boolean simulate) {
+    public boolean drainMiningResources(boolean simulate) {
+        if (!drainEnergy(true) || !drainFluid(true)) {
+            return false;
+        }
+        if (!simulate) {
+            drainEnergy(false);
+            drainFluid(false);
+        }
+        return true;
+    }
+
+    protected boolean drainEnergy(boolean simulate) {
         long energyToDrain = GTValues.VA[getEnergyTier()];
         long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
         if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-            if (!simulate)
+            if (!simulate) {
                 energyContainer.changeEnergy(-energyToDrain);
+            }
             return true;
         }
         return false;
+    }
+
+    protected boolean drainFluid(boolean simulate) {
+        int overclockAmount = getEnergyTier() - this.tier;
+        int amount = this.drillingFluidConsumePerTick * overclockAmount;
+        FluidStack drained = this.inputFluidInventory.drain(DrillingFluid.getFluid(amount), !simulate);
+        return drained != null && drained.amount >= amount;
     }
 
     @Override
-    public boolean drainFluid(boolean simulate) {
-        FluidStack drillingFluid = DrillingFluid
-                .getFluid(this.drillingFluidConsumePerTick * this.minerLogic.getOverclockAmount());
-        FluidStack fluidStack = inputFluidInventory.getTankAt(0).getFluid();
-        if (fluidStack != null && fluidStack.isFluidEqual(DrillingFluid.getFluid(1)) &&
-                fluidStack.amount >= drillingFluid.amount) {
-            if (!simulate)
-                inputFluidInventory.drain(drillingFluid, true);
-            return true;
-        }
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
+    public ICubeRenderer getPipeTexture() {
+        return getBaseTexture(null);
+    }
+
     @Override
+    @SideOnly(Side.CLIENT)
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
         super.renderMetaTileEntity(renderState, translation, pipeline);
         this.getFrontOverlay().renderOrientedState(renderState, translation, pipeline, getFrontFacing(),
@@ -177,11 +162,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
 
     @Override
     protected void updateFormedValid() {
-        this.minerLogic.performMining();
-        if (!getWorld().isRemote && this.minerLogic.wasActiveAndNeedsUpdate()) {
-            this.minerLogic.setWasActiveAndNeedsUpdate(false);
-            this.minerLogic.setActive(false);
-        }
+        this.minerLogic.update();
     }
 
     @Override
@@ -191,13 +172,12 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
                 .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
                 .where('S', selfPredicate())
-                .where('X', states(getCasingState())
+                .where('X', this.type.getCasing()
                         .or(abilities(MultiblockAbility.EXPORT_ITEMS).setMaxGlobalLimited(1).setPreviewCount(1))
                         .or(abilities(MultiblockAbility.IMPORT_FLUIDS).setExactLimit(1).setPreviewCount(1))
-                        .or(abilities(MultiblockAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3)
-                                .setPreviewCount(1)))
-                .where('C', states(getCasingState()))
-                .where('F', getFramePredicate())
+                        .or(abilities(MultiblockAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3).setPreviewCount(1)))
+                .where('C', this.type.getCasing())
+                .where('F', this.type.getFrame())
                 .where('#', any())
                 .build();
     }
@@ -208,17 +188,13 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World player, @NotNull List<String> tooltip,
-                               boolean advanced) {
-        int workingAreaChunks = this.minerLogic.getCurrentRadius() * 2 / CHUNK_LENGTH;
+    public void addInformation(ItemStack stack, @Nullable World player, @Nonnull List<String> tooltip, boolean advanced) {
+        int workingAreaChunks = this.minerLogic.getMaximumChunkDiameter();
         tooltip.add(I18n.format("gregtech.machine.miner.multi.modes"));
         tooltip.add(I18n.format("gregtech.machine.miner.multi.production"));
-        tooltip.add(I18n.format("gregtech.machine.miner.fluid_usage", getDrillingFluidConsumePerTick(),
-                DrillingFluid.getLocalizedName()));
-        tooltip.add(I18n.format("gregtech.universal.tooltip.working_area_chunks_max", workingAreaChunks,
-                workingAreaChunks));
-        tooltip.add(I18n.format("gregtech.universal.tooltip.energy_tier_range", GTValues.VNF[this.tier],
-                GTValues.VNF[this.tier + 1]));
+        tooltip.add(I18n.format("gregtech.machine.miner.fluid_usage", this.drillingFluidConsumePerTick, DrillingFluid.getLocalizedName()));
+        tooltip.add(I18n.format("gregtech.universal.tooltip.working_area_chunks_max", workingAreaChunks, workingAreaChunks));
+        tooltip.add(I18n.format("gregtech.universal.tooltip.energy_tier_range", GTValues.VNF[this.tier], GTValues.VNF[this.tier + 1]));
     }
 
     @Override
@@ -244,44 +220,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                         voltageName));
             }
 
-            int workingAreaChunks = this.minerLogic.getCurrentRadius() * 2 / CHUNK_LENGTH;
-            int workingArea = getWorkingArea(minerLogic.getCurrentRadius());
-            textList.add(new TextComponentTranslation("gregtech.machine.miner.startx",
-                    this.minerLogic.getX().get() == Integer.MAX_VALUE ? 0 : this.minerLogic.getX().get()));
-            textList.add(new TextComponentTranslation("gregtech.machine.miner.starty",
-                    this.minerLogic.getY().get() == Integer.MAX_VALUE ? 0 : this.minerLogic.getY().get()));
-            textList.add(new TextComponentTranslation("gregtech.machine.miner.startz",
-                    this.minerLogic.getZ().get() == Integer.MAX_VALUE ? 0 : this.minerLogic.getZ().get()));
-            if (this.minerLogic.isChunkMode()) {
-                textList.add(new TextComponentTranslation("gregtech.machine.miner.working_area_chunks",
-                        workingAreaChunks, workingAreaChunks));
-            } else {
-                textList.add(
-                        new TextComponentTranslation("gregtech.machine.miner.working_area", workingArea, workingArea));
-            }
-            if (this.minerLogic.isDone())
-                textList.add(new TextComponentTranslation("gregtech.machine.miner.done")
-                        .setStyle(new Style().setColor(TextFormatting.GREEN)));
-            else if (this.minerLogic.isWorking())
-                textList.add(new TextComponentTranslation("gregtech.machine.miner.working")
-                        .setStyle(new Style().setColor(TextFormatting.GOLD)));
-            else if (!this.isWorkingEnabled())
-                textList.add(new TextComponentTranslation("gregtech.multiblock.work_paused"));
-        }
-    }
-
-    private void addDisplayText2(List<ITextComponent> textList) {
-        if (this.isStructureFormed()) {
-            ITextComponent mCoords = new TextComponentString("    ")
-                    .appendSibling(new TextComponentTranslation("gregtech.machine.miner.minex",
-                            this.minerLogic.getMineX().get()))
-                    .appendText("\n    ")
-                    .appendSibling(new TextComponentTranslation("gregtech.machine.miner.miney",
-                            this.minerLogic.getMineY().get()))
-                    .appendText("\n    ")
-                    .appendSibling(new TextComponentTranslation("gregtech.machine.miner.minez",
-                            this.minerLogic.getMineZ().get()));
-            textList.add(mCoords);
+            this.minerLogic.addMinerArea(textList);
+            this.minerLogic.addMinerWorkStatus(textList);
         }
     }
 
@@ -307,46 +247,15 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         }
     }
 
-    public IBlockState getCasingState() {
-        if (this.material.equals(Materials.Titanium))
-            return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.TITANIUM_STABLE);
-        if (this.material.equals(Materials.TungstenSteel))
-            return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.TUNGSTENSTEEL_ROBUST);
-        return MetaBlocks.METAL_CASING.getState(BlockMetalCasing.MetalCasingType.STEEL_SOLID);
-    }
-
-    @NotNull
-    private TraceabilityPredicate getFramePredicate() {
-        if (this.material.equals(Materials.Titanium))
-            return frames(Materials.Titanium);
-        if (this.material.equals(Materials.TungstenSteel))
-            return frames(Materials.TungstenSteel);
-        return frames(Materials.Steel);
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
-        if (this.material.equals(Materials.Titanium))
-            return Textures.STABLE_TITANIUM_CASING;
-        if (this.material.equals(Materials.TungstenSteel))
-            return Textures.ROBUST_TUNGSTENSTEEL_CASING;
-        return Textures.SOLID_STEEL_CASING;
-    }
-
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound data) {
         super.writeToNBT(data);
-        data.setTag("chunkMode", new NBTTagInt(chunkMode ? 1 : 0));
-        data.setTag("silkTouch", new NBTTagInt(silkTouch ? 1 : 0));
         return this.minerLogic.writeToNBT(data);
     }
 
     @Override
     public void readFromNBT(NBTTagCompound data) {
         super.readFromNBT(data);
-        chunkMode = data.getInteger("chunkMode") != 0;
-        silkTouch = data.getInteger("silkTouch") != 0;
         this.minerLogic.readFromNBT(data);
     }
 
@@ -368,45 +277,30 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         this.minerLogic.receiveCustomData(dataId, buf);
     }
 
-    @SideOnly(Side.CLIENT)
-    @NotNull
+
     @Override
-    protected ICubeRenderer getFrontOverlay() {
-        if (this.tier == 5)
-            return Textures.LARGE_MINER_OVERLAY_ADVANCED;
-        if (this.tier == 6)
-            return Textures.LARGE_MINER_OVERLAY_ADVANCED_2;
-        return Textures.LARGE_MINER_OVERLAY_BASIC;
+    @SideOnly(Side.CLIENT)
+    public ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart) {
+        return this.type.getBaseTexture(sourcePart);
     }
 
-    public long getMaxVoltage() {
-        return GTValues.V[GTUtility.getTierByVoltage(energyContainer.getInputVoltage())];
+    @NotNull
+    @Override
+    @SideOnly(Side.CLIENT)
+    protected ICubeRenderer getFrontOverlay() {
+        return this.type.getFrontOverlay();
     }
 
     @Override
     protected ModularUI.Builder createUITemplate(EntityPlayer entityPlayer) {
-        ModularUI.Builder builder = super.createUITemplate(entityPlayer);
-        builder.widget(new AdvancedTextWidget(63, 31, this::addDisplayText2, 0xFFFFFF)
-                .setMaxWidthLimit(68).setClickHandler(this::handleDisplayClick));
-        return builder;
-    }
-
-    // used for UI
-    private int getCurrentMode() {
-        // 0 -> not chunk mode, not silk touch mode
-        if (!minerLogic.isChunkMode() && !minerLogic.isSilkTouchMode()) {
-            return 0;
-        }
-        // 1 -> is chunk mode, not silk touch mode
-        if (minerLogic.isChunkMode() && !minerLogic.isSilkTouchMode()) {
-            return 1;
-        }
-        // 2 -> not chunk mode, is silk touch mode
-        if (!minerLogic.isChunkMode() && minerLogic.isSilkTouchMode()) {
-            return 2;
-        }
-        // 3 -> is chunk mode, is silk touch mode
-        return 3;
+        return super.createUITemplate(entityPlayer)
+                .widget(new AdvancedTextWidget(63, 31 + 10, textList -> {
+                    if (this.isStructureFormed()) {
+                        this.minerLogic.addLastMinedBlock(textList);
+                    }
+                }, 0xFFFFFF)
+                        .setMaxWidthLimit(68 - 10)
+                        .setClickHandler(this::handleDisplayClick));
     }
 
     // used for UI
@@ -450,27 +344,20 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
             return true;
 
         if (!this.isActive()) {
-            int currentRadius = this.minerLogic.getCurrentRadius();
             if (this.minerLogic.isChunkMode()) {
-                if (currentRadius - CHUNK_LENGTH <= 0) {
-                    this.minerLogic.setCurrentRadius(this.minerLogic.getMaximumRadius());
-                } else {
-                    this.minerLogic.setCurrentRadius(currentRadius - CHUNK_LENGTH);
-                }
-                int workingAreaChunks = this.minerLogic.getCurrentRadius() * 2 / CHUNK_LENGTH;
-                playerIn.sendMessage(new TextComponentTranslation("gregtech.machine.miner.working_area_chunks",
-                        workingAreaChunks, workingAreaChunks));
+                int currentChunkDiameter = this.minerLogic.getCurrentChunkDiameter();
+                this.minerLogic.setCurrentChunkDiameter(currentChunkDiameter <= 1 ?
+                        this.minerLogic.getMaximumChunkDiameter() : currentChunkDiameter - 1);
+
+                int workingAreaChunks = this.minerLogic.getCurrentChunkDiameter();
+                player.sendMessage(new TextComponentTranslation("gregtech.machine.miner.working_area_chunks", workingAreaChunks, workingAreaChunks));
             } else {
-                if (currentRadius - CHUNK_LENGTH / 2 <= 0) {
-                    this.minerLogic.setCurrentRadius(this.minerLogic.getMaximumRadius());
-                } else {
-                    this.minerLogic.setCurrentRadius(currentRadius - CHUNK_LENGTH / 2);
-                }
-                int workingArea = getWorkingArea(minerLogic.getCurrentRadius());
-                playerIn.sendMessage(new TextComponentTranslation("gregtech.universal.tooltip.working_area",
-                        workingArea, workingArea));
+                int diameter = this.minerLogic.getCurrentDiameter() - 8;
+                if(diameter <= 0) diameter = this.minerLogic.getMaximumDiameter();
+                this.minerLogic.setCurrentDiameter(diameter);
+
+                player.sendMessage(new TextComponentTranslation("gregtech.universal.tooltip.working_area", diameter, diameter));
             }
-            this.minerLogic.resetArea();
         } else {
             playerIn.sendMessage(new TextComponentTranslation("gregtech.machine.miner.errorradius"));
         }
@@ -483,28 +370,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public boolean isInventoryFull() {
-        return this.isInventoryFull;
-    }
-
-    @Override
-    public void setInventoryFull(boolean isFull) {
-        this.isInventoryFull = isFull;
-    }
-
-    public Material getMaterial() {
-        return material;
-    }
-
-    public int getTier() {
-        return this.tier;
-    }
-
-    public int getDrillingFluidConsumePerTick() {
-        return this.drillingFluidConsumePerTick;
-    }
-
-    @Override
     public boolean isWorkingEnabled() {
         return this.minerLogic.isWorkingEnabled();
     }
@@ -512,10 +377,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     @Override
     public void setWorkingEnabled(boolean isActivationAllowed) {
         this.minerLogic.setWorkingEnabled(isActivationAllowed);
-    }
-
-    public int getMaxChunkRadius() {
-        return this.minerLogic.getMaximumRadius() / CHUNK_LENGTH;
     }
 
     @Override
@@ -538,15 +399,14 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
 
     @Override
     public boolean isActive() {
-        return minerLogic.isActive() && isWorkingEnabled();
+        return isStructureFormed() && minerLogic.isActive();
     }
 
     @NotNull
     @Override
     public List<ITextComponent> getDataInfo() {
-        int workingArea = getWorkingArea(this.minerLogic.getCurrentRadius());
-        return Collections.singletonList(
-                new TextComponentTranslation("gregtech.machine.miner.working_area", workingArea, workingArea));
+        int diameter = this.minerLogic.getCurrentDiameter();
+        return Collections.singletonList(new TextComponentTranslation("gregtech.machine.miner.working_area", diameter, diameter));
     }
 
     @Override
@@ -557,5 +417,68 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     @Override
     public boolean allowsExtendedFacing() {
         return false;
+    }
+
+    public interface ILargeMinerType {
+
+        @Nonnull
+        TraceabilityPredicate getCasing();
+
+        @Nonnull
+        TraceabilityPredicate getFrame();
+
+        @SideOnly(Side.CLIENT)
+        @Nonnull
+        ICubeRenderer getFrontOverlay();
+
+        @SideOnly(Side.CLIENT)
+        @Nonnull
+        ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart);
+    }
+
+    public enum LargeMinerType implements ILargeMinerType {
+        STEEL,
+        TITANIUM,
+        TUNGSTEN_STEEL;
+
+        @Nonnull
+        public TraceabilityPredicate getCasing() {
+            return states(switch (this) {
+                case STEEL -> MetaBlocks.METAL_CASING.getState(MetalCasingType.STEEL_SOLID);
+                case TITANIUM -> MetaBlocks.METAL_CASING.getState(MetalCasingType.TITANIUM_STABLE);
+                case TUNGSTEN_STEEL -> MetaBlocks.METAL_CASING.getState(MetalCasingType.TUNGSTENSTEEL_ROBUST);
+            });
+        }
+
+        @Nonnull
+        public TraceabilityPredicate getFrame() {
+            return frames(switch (this) {
+                case STEEL -> Materials.Steel;
+                case TITANIUM -> Materials.Titanium;
+                case TUNGSTEN_STEEL -> Materials.TungstenSteel;
+            });
+        }
+
+        @Nonnull
+        @Override
+        @SideOnly(Side.CLIENT)
+        public ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart) {
+            return switch (this) {
+                case STEEL -> Textures.SOLID_STEEL_CASING;
+                case TITANIUM -> Textures.STABLE_TITANIUM_CASING;
+                case TUNGSTEN_STEEL -> Textures.ROBUST_TUNGSTENSTEEL_CASING;
+            };
+        }
+
+        @Nonnull
+        @Override
+        @SideOnly(Side.CLIENT)
+        public ICubeRenderer getFrontOverlay() {
+            return switch (this) {
+                case STEEL -> Textures.LARGE_MINER_OVERLAY_ADVANCED;
+                case TITANIUM -> Textures.LARGE_MINER_OVERLAY_ADVANCED_2;
+                case TUNGSTEN_STEEL -> Textures.LARGE_MINER_OVERLAY_BASIC;
+            };
+        }
     }
 }

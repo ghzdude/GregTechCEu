@@ -21,53 +21,13 @@ import gregtech.common.ConfigHolder;
 import gregtech.common.blocks.BlockTurbineCasing;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.metatileentities.converter.MetaTileEntityConverter;
-import gregtech.common.metatileentities.electric.MetaTileEntityAlarm;
-import gregtech.common.metatileentities.electric.MetaTileEntityBatteryBuffer;
-import gregtech.common.metatileentities.electric.MetaTileEntityBlockBreaker;
-import gregtech.common.metatileentities.electric.MetaTileEntityCharger;
-import gregtech.common.metatileentities.electric.MetaTileEntityDiode;
-import gregtech.common.metatileentities.electric.MetaTileEntityFisher;
-import gregtech.common.metatileentities.electric.MetaTileEntityGasCollector;
-import gregtech.common.metatileentities.electric.MetaTileEntityHull;
-import gregtech.common.metatileentities.electric.MetaTileEntityItemCollector;
-import gregtech.common.metatileentities.electric.MetaTileEntityMagicEnergyAbsorber;
-import gregtech.common.metatileentities.electric.MetaTileEntityMiner;
-import gregtech.common.metatileentities.electric.MetaTileEntityPump;
-import gregtech.common.metatileentities.electric.MetaTileEntityRockBreaker;
-import gregtech.common.metatileentities.electric.MetaTileEntitySingleCombustion;
-import gregtech.common.metatileentities.electric.MetaTileEntitySingleTurbine;
-import gregtech.common.metatileentities.electric.MetaTileEntityTransformer;
-import gregtech.common.metatileentities.electric.MetaTileEntityWorldAccelerator;
-import gregtech.common.metatileentities.electric.SimpleMachineMetaTileEntityResizable;
-import gregtech.common.metatileentities.multi.BoilerType;
-import gregtech.common.metatileentities.multi.MetaTileEntityCokeOven;
-import gregtech.common.metatileentities.multi.MetaTileEntityCokeOvenHatch;
-import gregtech.common.metatileentities.multi.MetaTileEntityLargeBoiler;
-import gregtech.common.metatileentities.multi.MetaTileEntityMultiblockTank;
-import gregtech.common.metatileentities.multi.MetaTileEntityPrimitiveBlastFurnace;
-import gregtech.common.metatileentities.multi.MetaTileEntityPrimitiveWaterPump;
-import gregtech.common.metatileentities.multi.MetaTileEntityPumpHatch;
-import gregtech.common.metatileentities.multi.MetaTileEntityTankValve;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityActiveTransformer;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityAssemblyLine;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityCleanroom;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityCrackingUnit;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityDataBank;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityDistillationTower;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityElectricBlastFurnace;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityFluidDrill;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityFusionReactor;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityHPCA;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityImplosionCompressor;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityLargeChemicalReactor;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityLargeMiner;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityMultiSmelter;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityNetworkSwitch;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityPowerSubstation;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityProcessingArray;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityPyrolyseOven;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityResearchStation;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityVacuumFreezer;
+import gregtech.common.metatileentities.electric.*;
+import gregtech.common.metatileentities.miner.MetaTileEntityLargeMiner;
+import gregtech.common.metatileentities.miner.MetaTileEntityLargeMiner.LargeMinerType;
+import gregtech.common.metatileentities.miner.MetaTileEntityMiner;
+import gregtech.common.metatileentities.miner.SteamMiner;
+import gregtech.common.metatileentities.multi.*;
+import gregtech.common.metatileentities.multi.electric.*;
 import gregtech.common.metatileentities.multi.electric.centralmonitor.MetaTileEntityCentralMonitor;
 import gregtech.common.metatileentities.multi.electric.centralmonitor.MetaTileEntityMonitorScreen;
 import gregtech.common.metatileentities.multi.electric.generator.MetaTileEntityLargeCombustionEngine;
@@ -425,7 +385,7 @@ public class MetaTileEntities {
         STEAM_ROCK_BREAKER_STEEL = registerMetaTileEntity(20,
                 new SteamRockBreaker(gregtechId("steam_rock_breaker_steel"), true));
 
-        STEAM_MINER = registerMetaTileEntity(21, new SteamMiner(gregtechId("steam_miner"), 320, 4, 0));
+        STEAM_MINER = registerMetaTileEntity(21, new SteamMiner(gregtechId("steam_miner"), 320, 4));
 
         // Electric Furnace, IDs 50-64
         registerSimpleMetaTileEntity(ELECTRIC_FURNACE, 50, "electric_furnace", RecipeMaps.FURNACE_RECIPES,
@@ -615,9 +575,9 @@ public class MetaTileEntities {
 
         // Chunk Miner, IDs 920-934
 
-        MINER[0] = registerMetaTileEntity(920, new MetaTileEntityMiner(gregtechId("miner.lv"), 1, 160, 8, 1));
-        MINER[1] = registerMetaTileEntity(921, new MetaTileEntityMiner(gregtechId("miner.mv"), 2, 80, 16, 2));
-        MINER[2] = registerMetaTileEntity(922, new MetaTileEntityMiner(gregtechId("miner.hv"), 3, 40, 24, 3));
+        MINER[0] = registerMetaTileEntity(920, new MetaTileEntityMiner(gregtechId("miner.lv"), 1, 160, 17));
+        MINER[1] = registerMetaTileEntity(921, new MetaTileEntityMiner(gregtechId("miner.mv"), 2, 80, 33));
+        MINER[2] = registerMetaTileEntity(922, new MetaTileEntityMiner(gregtechId("miner.hv"), 3, 40, 49));
 
         // Diesel Generator, IDs 935-949
         COMBUSTION_GENERATOR[0] = registerMetaTileEntity(935,
@@ -736,12 +696,9 @@ public class MetaTileEntities {
         STEAM_OVEN = registerMetaTileEntity(1024, new MetaTileEntitySteamOven(gregtechId("steam_oven")));
         STEAM_GRINDER = registerMetaTileEntity(1025, new MetaTileEntitySteamGrinder(gregtechId("steam_grinder")));
 
-        BASIC_LARGE_MINER = registerMetaTileEntity(1026,
-                new MetaTileEntityLargeMiner(gregtechId("large_miner.ev"), GTValues.EV, 16, 3, 4, Materials.Steel, 8));
-        LARGE_MINER = registerMetaTileEntity(1027, new MetaTileEntityLargeMiner(gregtechId("large_miner.iv"),
-                GTValues.IV, 4, 5, 5, Materials.Titanium, 16));
-        ADVANCED_LARGE_MINER = registerMetaTileEntity(1028, new MetaTileEntityLargeMiner(gregtechId("large_miner.luv"),
-                GTValues.LuV, 1, 7, 6, Materials.TungstenSteel, 32));
+        BASIC_LARGE_MINER = registerMetaTileEntity(1026, new MetaTileEntityLargeMiner(gregtechId("large_miner.ev"), GTValues.EV, 16, 3, 4, 8, LargeMinerType.STEEL));
+        LARGE_MINER = registerMetaTileEntity(1027, new MetaTileEntityLargeMiner(gregtechId("large_miner.iv"), GTValues.IV, 4, 5, 5, 16, LargeMinerType.TITANIUM));
+        ADVANCED_LARGE_MINER = registerMetaTileEntity(1028, new MetaTileEntityLargeMiner(gregtechId("large_miner.luv"), GTValues.LuV, 1, 7, 6, 32, LargeMinerType.TUNGSTEN_STEEL));
 
         CENTRAL_MONITOR = registerMetaTileEntity(1029, new MetaTileEntityCentralMonitor(gregtechId("central_monitor")));
 
