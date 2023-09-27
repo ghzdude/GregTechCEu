@@ -18,7 +18,7 @@ public class ItemPipeNet extends PipeNet<ItemPipeProperties> {
 
     private final Map<BlockPos, List<Inventory>> NET_DATA = new HashMap<>();
 
-    public ItemPipeNet(WorldPipeNet<ItemPipeProperties, ? extends PipeNet<ItemPipeProperties>> world) {
+    public ItemPipeNet(WorldPipeNet<ItemPipeProperties> world) {
         super(world);
     }
 

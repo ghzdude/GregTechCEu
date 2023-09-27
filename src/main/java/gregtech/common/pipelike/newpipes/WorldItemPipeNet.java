@@ -3,7 +3,7 @@ package gregtech.common.pipelike.newpipes;
 import gregtech.api.unification.material.properties.ItemPipeProperties;
 import net.minecraft.world.World;
 
-public class WorldItemPipeNet extends WorldPipeNet<ItemPipeProperties, ItemPipeNet> {
+public class WorldItemPipeNet extends WorldPipeNet<ItemPipeProperties> {
 
     private static final String DATA_ID = "gregtech.item_pipe_net";
 

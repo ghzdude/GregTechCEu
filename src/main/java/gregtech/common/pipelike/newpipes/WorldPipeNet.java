@@ -13,11 +13,11 @@ import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
-public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSavedData {
+public abstract class WorldPipeNet<NDT> extends WorldSavedData {
 
     private WeakReference<World> worldRef = new WeakReference<>(null);
-    protected List<T> pipeNets = new ArrayList<>();
-    protected final Map<ChunkPos, List<T>> pipeNetsByChunk = new HashMap<>();
+    protected List<PipeNet<NDT>> pipeNets = new ArrayList<>();
+    protected final Map<ChunkPos, List<PipeNet<NDT>>> pipeNetsByChunk = new HashMap<>();
 
     public WorldPipeNet(String name) {
         super(name);
@@ -46,11 +46,11 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
     }
 
     public void addNode(BlockPos nodePos, NDT nodeData, int mark, int openConnections, boolean isActive) {
-        T myPipeNet = null;
+        PipeNet<NDT> myPipeNet = null;
         Node<NDT> node = new Node<>(nodeData, openConnections, mark, isActive);
         for (EnumFacing facing : EnumFacing.VALUES) {
             BlockPos offsetPos = nodePos.offset(facing);
-            T pipeNet = getNetFromPos(offsetPos);
+            PipeNet<NDT> pipeNet = getNetFromPos(offsetPos);
             Node<NDT> secondNode = pipeNet == null ? null : pipeNet.getAllNodes().get(offsetPos);
             if (pipeNet != null && pipeNet.canAttachNode(nodeData) &&
                     pipeNet.canNodesConnect(secondNode, facing.getOpposite(), node, null)) {
@@ -71,12 +71,12 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
         }
     }
 
-    protected void addPipeNetToChunk(ChunkPos chunkPos, T pipeNet) {
+    protected void addPipeNetToChunk(ChunkPos chunkPos, PipeNet<NDT> pipeNet) {
         this.pipeNetsByChunk.computeIfAbsent(chunkPos, any -> new ArrayList<>()).add(pipeNet);
     }
 
-    protected void removePipeNetFromChunk(ChunkPos chunkPos, T pipeNet) {
-        List<T> list = this.pipeNetsByChunk.get(chunkPos);
+    protected void removePipeNetFromChunk(ChunkPos chunkPos, PipeNet<NDT> pipeNet) {
+        List<PipeNet<NDT>> list = this.pipeNetsByChunk.get(chunkPos);
         if (list != null) {
             list.remove(pipeNet);
             if (list.isEmpty()) {
@@ -86,14 +86,14 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
     }
 
     public void removeNode(BlockPos nodePos) {
-        T pipeNet = getNetFromPos(nodePos);
+        PipeNet<NDT> pipeNet = getNetFromPos(nodePos);
         if (pipeNet != null) {
             pipeNet.removeNode(nodePos);
         }
     }
 
     public void updateBlockedConnections(BlockPos nodePos, EnumFacing side, boolean isBlocked) {
-        T pipeNet = getNetFromPos(nodePos);
+        PipeNet<NDT> pipeNet = getNetFromPos(nodePos);
         if (pipeNet != null) {
             pipeNet.updateBlockedConnections(nodePos, side, isBlocked);
             pipeNet.onPipeConnectionsUpdate();
@@ -101,38 +101,38 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
     }
 
     public void updateMark(BlockPos nodePos, int newMark) {
-        T pipeNet = getNetFromPos(nodePos);
+        PipeNet<NDT> pipeNet = getNetFromPos(nodePos);
         if (pipeNet != null) {
             pipeNet.updateMark(nodePos, newMark);
         }
     }
 
-    public T getNetFromPos(BlockPos blockPos) {
-        List<T> pipeNetsInChunk = pipeNetsByChunk.getOrDefault(new ChunkPos(blockPos), Collections.emptyList());
-        for (T pipeNet : pipeNetsInChunk) {
+    public PipeNet<NDT> getNetFromPos(BlockPos blockPos) {
+        List<PipeNet<NDT>> pipeNetsInChunk = pipeNetsByChunk.getOrDefault(new ChunkPos(blockPos), Collections.emptyList());
+        for (PipeNet<NDT> pipeNet : pipeNetsInChunk) {
             if (pipeNet.containsNode(blockPos))
                 return pipeNet;
         }
         return null;
     }
 
-    protected void addPipeNet(T pipeNet) {
+    protected void addPipeNet(PipeNet<NDT> pipeNet) {
         addPipeNetSilently(pipeNet);
     }
 
-    protected void addPipeNetSilently(T pipeNet) {
+    protected void addPipeNetSilently(PipeNet<NDT> pipeNet) {
         this.pipeNets.add(pipeNet);
         pipeNet.getContainedChunks().forEach(chunkPos -> addPipeNetToChunk(chunkPos, pipeNet));
         pipeNet.isValid = true;
     }
 
-    protected void removePipeNet(T pipeNet) {
+    protected void removePipeNet(PipeNet<NDT> pipeNet) {
         this.pipeNets.remove(pipeNet);
         pipeNet.getContainedChunks().forEach(chunkPos -> removePipeNetFromChunk(chunkPos, pipeNet));
         pipeNet.isValid = false;
     }
 
-    protected abstract T createNetInstance();
+    protected abstract PipeNet<NDT> createNetInstance();
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
@@ -140,7 +140,7 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
         NBTTagList allEnergyNets = nbt.getTagList("PipeNets", NBT.TAG_COMPOUND);
         for (int i = 0; i < allEnergyNets.tagCount(); i++) {
             NBTTagCompound pNetTag = allEnergyNets.getCompoundTagAt(i);
-            T pipeNet = createNetInstance();
+            PipeNet<NDT> pipeNet = createNetInstance();
             pipeNet.deserializeNBT(pNetTag);
             addPipeNetSilently(pipeNet);
         }
@@ -150,7 +150,7 @@ public abstract class WorldPipeNet<NDT, T extends PipeNet<NDT>> extends WorldSav
     @Override
     public NBTTagCompound writeToNBT(@Nonnull NBTTagCompound compound) {
         NBTTagList allPipeNets = new NBTTagList();
-        for (T pipeNet : pipeNets) {
+        for (PipeNet<NDT> pipeNet : pipeNets) {
             NBTTagCompound pNetTag = pipeNet.serializeNBT();
             allPipeNets.appendTag(pNetTag);
         }

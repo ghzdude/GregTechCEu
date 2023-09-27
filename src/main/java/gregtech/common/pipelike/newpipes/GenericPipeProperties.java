@@ -6,7 +6,7 @@ import gregtech.api.unification.material.properties.PropertyKey;
 
 import java.util.Objects;
 
-public class GenericPipeProperties implements IMaterialProperty {
+public abstract class GenericPipeProperties implements IMaterialProperty {
 
     /**
      * Items will try to take the path with the lowest priority
@@ -14,11 +14,11 @@ public class GenericPipeProperties implements IMaterialProperty {
     private int priority;
 
     /**
-     * rate in stacks or liters per sec
+     * rate in items or liters per sec
      */
-    private float transferRate;
+    private int transferRate;
 
-    public GenericPipeProperties(int priority, float transferRate) {
+    public GenericPipeProperties(int priority, int transferRate) {
         this.priority = priority;
         this.transferRate = transferRate;
     }
@@ -27,7 +27,7 @@ public class GenericPipeProperties implements IMaterialProperty {
      * Default property constructor.
      */
     public GenericPipeProperties() {
-        this(1, 0.25f);
+        this(1, 16);
     }
 
     /**
@@ -88,13 +88,5 @@ public class GenericPipeProperties implements IMaterialProperty {
     @Override
     public int hashCode() {
         return Objects.hash(priority, transferRate);
-    }
-
-    @Override
-    public String toString() {
-        return "ItemPipeProperties{" +
-                "priority=" + priority +
-                ", transferRate=" + transferRate +
-                '}';
     }
 }
