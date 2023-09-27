@@ -18,16 +18,19 @@ public abstract class GenericPipeProperties implements IMaterialProperty {
      */
     private int transferRate;
 
-    public GenericPipeProperties(int priority, int transferRate) {
+    private final PipeType type;
+
+    public GenericPipeProperties(int priority, int transferRate, PipeType type) {
         this.priority = priority;
         this.transferRate = transferRate;
+        this.type = type;
     }
 
     /**
      * Default property constructor.
      */
     public GenericPipeProperties() {
-        this(1, 16);
+        this(1, 16, PipeType.ITEM);
     }
 
     /**
@@ -56,11 +59,11 @@ public abstract class GenericPipeProperties implements IMaterialProperty {
     }
 
     /**
-     * Sets the transfer rate of the item pipe
+     * Sets the transfer rate of the pipe
      *
      * @param transferRate The transfer rate
      */
-    public void setTransferRate(float transferRate) {
+    public void setTransferRate(int transferRate) {
         this.transferRate = transferRate;
     }
 
@@ -70,7 +73,9 @@ public abstract class GenericPipeProperties implements IMaterialProperty {
             properties.ensureSet(PropertyKey.INGOT, true);
         }
 
-        if (properties.hasProperty(PropertyKey.FLUID_PIPE)) {
+        if ((getType() == PipeType.ITEM && properties.hasProperty(PropertyKey.FLUID_PIPE)) ||
+            (getType() == PipeType.FLUID && properties.hasProperty(PropertyKey.ITEM_PIPE))
+        ) {
             throw new IllegalStateException(
                     "Material " + properties.getMaterial() +
                             " has both Fluid and Item Pipe Property, which is not allowed!");
@@ -82,11 +87,21 @@ public abstract class GenericPipeProperties implements IMaterialProperty {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GenericPipeProperties that = (GenericPipeProperties) o;
+        if (that.getType() != this.getType()) return false;
         return priority == that.priority && Float.compare(that.transferRate, transferRate) == 0;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(priority, transferRate);
+    }
+
+    public PipeType getType() {
+        return type;
+    }
+
+    public enum PipeType {
+        FLUID,
+        ITEM
     }
 }
