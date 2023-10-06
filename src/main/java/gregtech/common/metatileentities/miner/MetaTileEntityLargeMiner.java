@@ -6,12 +6,11 @@ import gregtech.api.capability.impl.EnergyContainerList;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
 import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.ModularUI;
 import gregtech.api.gui.Widget;
-import gregtech.api.gui.widgets.AdvancedTextWidget;
 import gregtech.api.gui.widgets.ImageCycleButtonWidget;
 import gregtech.api.items.itemhandlers.GTItemStackHandler;
 import gregtech.api.metatileentity.IDataInfoProvider;
+import gregtech.api.metatileentity.IFastRenderMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.IMultiblockPart;
@@ -40,6 +39,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -63,7 +63,7 @@ import java.util.Objects;
 import static gregtech.api.unification.material.Materials.DrillingFluid;
 
 public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
-                                      implements IMiner, IControllable, IDataInfoProvider {
+                                      implements IMiner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity {
 
     @NotNull
     public final ILargeMinerType type;
@@ -147,17 +147,44 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
 
     @Override
     @SideOnly(Side.CLIENT)
-    public ICubeRenderer getPipeTexture() {
-        return getBaseTexture(null);
-    }
-
-    @Override
-    @SideOnly(Side.CLIENT)
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
         super.renderMetaTileEntity(renderState, translation, pipeline);
         this.getFrontOverlay().renderOrientedState(renderState, translation, pipeline, getFrontFacing(),
                 this.minerLogic.isWorking(), this.isWorkingEnabled());
-        minerLogic.renderPipe(renderState, translation, pipeline);
+        if (isStructureFormed()) {
+            EnumFacing back = getFrontFacing().getOpposite();
+            MinerUtil.renderPipe(getBaseTexture(null), this.minerLogic.getPipeLength(), renderState,
+                    translation.translate(back.getXOffset(), back.getYOffset(), back.getZOffset()), pipeline);
+        }
+    }
+
+    @Override
+    public void renderMetaTileEntity(double x, double y, double z, float partialTicks) {
+        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        if (previewArea != null) previewArea.renderMetaTileEntity(this, x, y, z, partialTicks);
+    }
+
+    @Override
+    public void renderMetaTileEntityFast(CCRenderState renderState, Matrix4 translation, float partialTicks) {
+        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        if (previewArea != null) previewArea.renderMetaTileEntityFast(this, renderState, translation, partialTicks);
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        return previewArea != null ? previewArea.getRenderBoundingBox() : MinerUtil.EMPTY_AABB;
+    }
+
+    @Override
+    public boolean shouldRenderInPass(int pass) {
+        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        return previewArea != null && previewArea.shouldRenderInPass(pass);
+    }
+
+    @Override
+    public boolean isGlobalRenderer() {
+        return true;
     }
 
     @Override
@@ -219,9 +246,24 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 textList.add(new TextComponentTranslation("gregtech.multiblock.max_energy_per_tick", maxVoltage,
                         voltageName));
             }
+            this.minerLogic.addDisplayText(textList);
+        }
+    }
 
-            this.minerLogic.addMinerArea(textList);
-            this.minerLogic.addMinerWorkStatus(textList);
+    @Override
+    protected void handleDisplayClick(String componentData, Widget.ClickData clickData) {
+        switch (componentData) {
+            case MinerUtil.DISPLAY_CLICK_AREA_PREVIEW -> this.minerLogic.setPreviewEnabled(true);
+            case MinerUtil.DISPLAY_CLICK_AREA_PREVIEW_HIDE -> this.minerLogic.setPreviewEnabled(false);
+            case MinerUtil.DISPLAY_CLICK_Y_LIMIT_DECR -> this.minerLogic.setYLimit(Math.max(0,
+                    this.minerLogic.getYLimit() - (clickData.isShiftClick ? 5 : 1)));
+            case MinerUtil.DISPLAY_CLICK_Y_LIMIT_INCR -> {
+                int yLimit = this.minerLogic.getYLimit() + (clickData.isShiftClick ? 5 : 1);
+                if (yLimit < 0) yLimit = this.minerLogic.getYLimit() < 0 ? 0 : Integer.MAX_VALUE;
+                this.minerLogic.setYLimit(yLimit);
+            }
+            case MinerUtil.DISPLAY_CLICK_REPEAT_ENABLE -> this.minerLogic.setRepeat(true);
+            case MinerUtil.DISPLAY_CLICK_REPEAT_DISABLE -> this.minerLogic.setRepeat(false);
         }
     }
 
@@ -353,7 +395,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 player.sendMessage(new TextComponentTranslation("gregtech.machine.miner.working_area_chunks", workingAreaChunks, workingAreaChunks));
             } else {
                 int diameter = this.minerLogic.getCurrentDiameter() - 8;
-                if(diameter <= 0) diameter = this.minerLogic.getMaximumDiameter();
+                if (diameter <= 0) diameter = this.minerLogic.getMaximumDiameter();
                 this.minerLogic.setCurrentDiameter(diameter);
 
                 player.sendMessage(new TextComponentTranslation("gregtech.universal.tooltip.working_area", diameter, diameter));
