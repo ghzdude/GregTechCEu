@@ -9,6 +9,7 @@ import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.Widget;
 import gregtech.api.gui.widgets.ImageCycleButtonWidget;
 import gregtech.api.items.itemhandlers.GTItemStackHandler;
+import gregtech.api.items.toolitem.ToolHelper;
 import gregtech.api.metatileentity.IDataInfoProvider;
 import gregtech.api.metatileentity.IFastRenderMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
@@ -20,26 +21,20 @@ import gregtech.api.metatileentity.multiblock.MultiblockWithDisplayBase;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
-import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.recipes.RecipeMaps;
-import gregtech.api.unification.material.Materials;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.TextComponentUtil;
 import gregtech.client.renderer.ICubeRenderer;
-import gregtech.client.renderer.texture.Textures;
-import gregtech.common.blocks.BlockMetalCasing.MetalCasingType;
-import gregtech.common.blocks.MetaBlocks;
 import gregtech.core.sound.GTSoundEvents;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -47,6 +42,8 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 import codechicken.lib.raytracer.CuboidRayTraceResult;
 import codechicken.lib.render.CCRenderState;
@@ -63,12 +60,14 @@ import java.util.Objects;
 import static gregtech.api.unification.material.Materials.DrillingFluid;
 
 public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
-                                      implements IMiner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity {
+                                      implements Miner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity {
 
     @NotNull
-    public final ILargeMinerType type;
+    public final LargeMinerType type;
     public final int tier;
     public final int drillingFluidConsumePerTick;
+    public final int oreMultiplier;
+
     private final MultiblockMinerLogic minerLogic;
 
     private IEnergyContainer energyContainer;
@@ -81,14 +80,15 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         this.type = Objects.requireNonNull(type, "type == null");
         this.tier = tier;
         this.drillingFluidConsumePerTick = drillingFluidConsumePerTick;
-        this.minerLogic = new MultiblockMinerLogic(this, fortune, speed, maxChunkDiameter, RecipeMaps.MACERATOR_RECIPES);
+        this.oreMultiplier = oreMultiplier;
+        this.minerLogic = new MultiblockMinerLogic(this, speed, maxChunkDiameter);
     }
 
     @Override
     public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
         return new MetaTileEntityLargeMiner(metaTileEntityId, this.tier, this.minerLogic.getWorkFrequency(),
                 this.minerLogic.getMaximumChunkDiameter(),
-                this.minerLogic.getFortune(), this.drillingFluidConsumePerTick, this.type);
+                this.oreMultiplier, this.drillingFluidConsumePerTick, this.type);
     }
 
     @Override
@@ -115,10 +115,9 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public boolean drainMiningResources(boolean simulate) {
-        if (!drainEnergy(true) || !drainFluid(true)) {
-            return false;
-        }
+    public boolean drainMiningResources(@NotNull MinedBlockType minedBlockType, boolean pipeExtended, boolean simulate) {
+        if (minedBlockType == MinedBlockType.NOTHING) return true;
+        if (!drainEnergy(true) || !drainFluid(true)) return false;
         if (!simulate) {
             drainEnergy(false);
             drainFluid(false);
@@ -146,39 +145,49 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
+    public void getRegularBlockDrops(@Nonnull NonNullList<ItemStack> drops, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
+        if (this.minerLogic.isSilkTouchMode()) {
+            drops.add(ToolHelper.getSilkTouchDrop(state));
+        } else if (MinerUtil.applyTieredHammerDrops(GTUtility.toItem(state), drops,
+                this.getEnergyTier(), RecipeMaps.MACERATOR_RECIPES, this.oreMultiplier) == 0) {
+            Miner.super.getRegularBlockDrops(drops, world, pos, state); // fallback
+        }
+    }
+
+    @Override
     @SideOnly(Side.CLIENT)
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
         super.renderMetaTileEntity(renderState, translation, pipeline);
         this.getFrontOverlay().renderOrientedState(renderState, translation, pipeline, getFrontFacing(),
-                this.minerLogic.isWorking(), this.isWorkingEnabled());
+                isActive(), isWorkingEnabled());
         if (isStructureFormed()) {
             EnumFacing back = getFrontFacing().getOpposite();
-            MinerUtil.renderPipe(getBaseTexture(null), this.minerLogic.getPipeLength(), renderState,
+            MinerRenderHelper.renderPipe(getBaseTexture(null), this.minerLogic.getPipeLength(), renderState,
                     translation.translate(back.getXOffset(), back.getYOffset(), back.getZOffset()), pipeline);
         }
     }
 
     @Override
     public void renderMetaTileEntity(double x, double y, double z, float partialTicks) {
-        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        MiningArea previewArea = this.minerLogic.getPreviewArea();
         if (previewArea != null) previewArea.renderMetaTileEntity(this, x, y, z, partialTicks);
     }
 
     @Override
     public void renderMetaTileEntityFast(CCRenderState renderState, Matrix4 translation, float partialTicks) {
-        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        MiningArea previewArea = this.minerLogic.getPreviewArea();
         if (previewArea != null) previewArea.renderMetaTileEntityFast(this, renderState, translation, partialTicks);
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        MiningArea previewArea = this.minerLogic.getPreviewArea();
         return previewArea != null ? previewArea.getRenderBoundingBox() : MinerUtil.EMPTY_AABB;
     }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
-        IMiningArea previewArea = this.minerLogic.getPreviewArea();
+        MiningArea previewArea = this.minerLogic.getPreviewArea();
         return previewArea != null && previewArea.shouldRenderInPass(pass);
     }
 
