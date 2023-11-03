@@ -31,8 +31,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -41,7 +43,7 @@ public class MetaTileEntityCreativeChest extends MetaTileEntityQuantumChest {
     private int itemsPerCycle = 1;
     private int ticksPerCycle = 1;
 
-    private final ItemStackHandler handler;
+    private final GTItemStackHandler handler;
 
     private boolean active;
 
@@ -187,19 +189,19 @@ public class MetaTileEntityCreativeChest extends MetaTileEntityQuantumChest {
         return this.handler;
     }
 
-    protected class CreativeItemStackHandler extends ItemStackHandler {
+    protected class CreativeItemStackHandler extends GTItemStackHandler {
 
         CreativeItemStackHandler(int size) {
-            super(size);
+            super(MetaTileEntityCreativeChest.this, size);
         }
 
-        @NotNull
+        @Nonnull
         @Override
-        public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
             return stack;
         }
 
-        @NotNull
+        @Nonnull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             ItemStack stack = super.getStackInSlot(slot);
@@ -243,7 +245,7 @@ public class MetaTileEntityCreativeChest extends MetaTileEntityQuantumChest {
             this.onContentsChanged(slot);
         }
 
-        @NotNull
+        @Nonnull
         @Override
         public ItemStack getStackInSlot(int slot) {
             return super.getStackInSlot(0);
