@@ -185,7 +185,7 @@ public class SteamMiner extends MetaTileEntity implements Miner, IControllable, 
     }
 
     @Override
-    public boolean drainMiningResources(@NotNull MinedBlockType minedBlockType, boolean pipeExtended, boolean simulate) {
+    public boolean drainMiningResources(@Nonnull MinedBlockType minedBlockType, boolean pipeExtended, boolean simulate) {
         if (minedBlockType == MinedBlockType.NOTHING) return true;
         if (this.ventingStuck) return false;
         FluidStack drained = this.importFluids.drain(energyPerTick, simulate);
