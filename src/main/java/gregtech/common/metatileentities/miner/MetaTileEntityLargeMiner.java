@@ -116,7 +116,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         this.inputFluidInventory = new FluidTankList(false, getAbilities(MultiblockAbility.IMPORT_FLUIDS));
         this.outputInventory = new ItemHandlerList(getAbilities(MultiblockAbility.EXPORT_ITEMS));
         this.energyContainer = new EnergyContainerList(getAbilities(MultiblockAbility.INPUT_ENERGY));
-        this.minerLogic.reset();
     }
 
     public int getEnergyTier() {
@@ -324,7 +323,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                                 "gregtech.machine.miner.display.toggle.disabled")
                                 .setStyle(button(currentValue ? MinerUtil.DISPLAY_CLICK_REPEAT_DISABLE : MinerUtil.DISPLAY_CLICK_REPEAT_ENABLE))));
 
-        ITextComponent replaceOreText = new TextComponentTranslation(this.minerLogic.getOreReplacement().getBlock().getTranslationKey()+".name");
+        ITextComponent replaceOreText = new TextComponentTranslation(this.minerLogic.getOreReplacement().getBlock().getTranslationKey() + ".name");
         if (!this.minerLogic.isWorking()) {
             replaceOreText = new TextComponentString("[")
                     .appendSibling(replaceOreText.setStyle(new Style().setColor(TextFormatting.AQUA)))
