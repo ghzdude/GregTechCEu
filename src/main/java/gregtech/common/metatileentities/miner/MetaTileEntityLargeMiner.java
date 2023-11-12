@@ -25,6 +25,7 @@ import gregtech.api.recipes.RecipeMaps;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.TextComponentUtil;
 import gregtech.client.renderer.ICubeRenderer;
+import gregtech.client.renderer.texture.Textures;
 import gregtech.core.sound.GTSoundEvents;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -42,6 +43,7 @@ import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.FluidStack;
@@ -148,7 +150,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     protected boolean drainFluid(boolean simulate) {
-        int overclockAmount = getEnergyTier() - this.tier;
+        int overclockAmount = getEnergyTier() - this.tier + 1;
         int amount = this.drillingFluidConsumePerTick * overclockAmount;
         FluidStack drained = this.inputFluidInventory.drain(DrillingFluid.getFluid(amount), !simulate);
         return drained != null && drained.amount >= amount;
@@ -180,14 +182,19 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         this.getFrontOverlay().renderOrientedState(renderState, translation, pipeline, getFrontFacing(),
                 isActive(), isWorkingEnabled());
         if (isStructureFormed()) {
-            EnumFacing back = getFrontFacing().getOpposite();
-            MinerRenderHelper.renderPipe(getBaseTexture(null), this.minerLogic.getPipeLength(), renderState,
-                    translation.translate(back.getXOffset(), back.getYOffset(), back.getZOffset()), pipeline);
+            EnumFacing f = getFrontFacing().getOpposite();
+            Textures.PIPE_IN_OVERLAY.renderSided(EnumFacing.DOWN, renderState,
+                    translation.copy().translate(f.getXOffset(), 0, f.getZOffset()), pipeline);
         }
     }
 
     @Override
     public void renderMetaTileEntity(double x, double y, double z, float partialTicks) {
+        if (MinecraftForgeClient.getRenderPass() == RENDER_PASS_NORMAL) {
+            EnumFacing f = getFrontFacing().getOpposite();
+            MinerRenderHelper.renderPipe(x + f.getXOffset(), y, z + f.getZOffset(), getWorld(), getPos().offset(f),
+                    this.minerLogic.getPipeLength(), this.type.getMiningPipeModel());
+        }
         MiningArea previewArea = this.minerLogic.getPreviewArea();
         if (previewArea != null) previewArea.renderMetaTileEntity(this, x, y, z, partialTicks);
     }
@@ -200,12 +207,12 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        MiningArea previewArea = this.minerLogic.getPreviewArea();
-        return previewArea != null ? previewArea.getRenderBoundingBox() : MinerUtil.EMPTY_AABB;
+        return this.minerLogic.getRenderBoundingBox();
     }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
+        if (pass == RENDER_PASS_NORMAL) return true;
         MiningArea previewArea = this.minerLogic.getPreviewArea();
         return previewArea != null && previewArea.shouldRenderInPass(pass);
     }
@@ -298,7 +305,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         ITextComponent hoverText;
         if (yLimit > 0) {
             value = new TextComponentString(String.format("%,d", yLimit));
-            hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip", value);
+            hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip", value.createCopy());
         } else {
             value = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.no_value");
             hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip.no_value");

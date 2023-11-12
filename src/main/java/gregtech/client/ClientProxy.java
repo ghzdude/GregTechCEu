@@ -31,6 +31,7 @@ import gregtech.common.blocks.BlockFrame;
 import gregtech.common.blocks.MetaBlocks;
 import gregtech.common.items.MetaItems;
 import gregtech.common.items.ToolItems;
+import gregtech.common.metatileentities.miner.MiningPipeModels;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -94,6 +95,7 @@ public class ClientProxy extends CommonProxy {
         MetaEntities.initRenderers();
         TextureUtils.addIconRegister(GTFluidRegistration.INSTANCE::registerSprites);
         TextureUtils.addIconRegister(PipeRenderer::initializeRestrictor);
+        MiningPipeModels.init();
     }
 
     @Override
