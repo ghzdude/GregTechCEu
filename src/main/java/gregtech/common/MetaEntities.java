@@ -4,6 +4,7 @@ import gregtech.api.GregTechAPI;
 import gregtech.api.util.GTUtility;
 import gregtech.client.renderer.handler.DynamiteRenderer;
 import gregtech.client.renderer.handler.GTBoatRenderer;
+import gregtech.client.renderer.handler.MiningPipeRenderer;
 import gregtech.client.renderer.handler.GTExplosiveRenderer;
 import gregtech.client.renderer.handler.PortalRenderer;
 import gregtech.common.entities.DynamiteEntity;
@@ -14,15 +15,10 @@ import gregtech.common.entities.PortalEntity;
 import gregtech.common.entities.PowderbarrelEntity;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class MetaEntities {
 
@@ -38,7 +34,7 @@ public class MetaEntities {
         EntityRegistry.registerModEntity(GTUtility.gregtechId("itnt"), ITNTEntity.class, "ITNT", 5,
                 GregTechAPI.instance, 64, 3, true);
         EntityRegistry.registerModEntity(GTUtility.gregtechId("mining_pipe"), MiningPipeEntity.class, "MiningPipe", 4,
-                GregTechAPI.instance, 64, 5, false);
+                GregTechAPI.instance, 0, 2, false);
     }
 
     @SideOnly(Side.CLIENT)
@@ -49,12 +45,6 @@ public class MetaEntities {
         RenderingRegistry.registerEntityRenderingHandler(GTBoatEntity.class, GTBoatRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(PowderbarrelEntity.class, GTExplosiveRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ITNTEntity.class, GTExplosiveRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(MiningPipeEntity.class, manager -> new Render<>(manager) {
-            @Nullable
-            @Override
-            protected ResourceLocation getEntityTexture(@Nonnull MiningPipeEntity entity) {
-                return null;
-            }
-        }); // TODO test shit please remove
+        RenderingRegistry.registerEntityRenderingHandler(MiningPipeEntity.class, MiningPipeRenderer::iHateJavaGenerics);
     }
 }

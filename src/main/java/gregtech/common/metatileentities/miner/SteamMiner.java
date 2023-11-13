@@ -106,7 +106,6 @@ public class SteamMiner extends MetaTileEntity implements Miner, IControllable, 
 
     @Override
     public void renderMetaTileEntity(double x, double y, double z, float partialTicks) {
-        MinerRenderHelper.renderPipe(x, y, z, getWorld(), getPos(), this.minerLogic.getPipeLength(), MiningPipeModels.BRONZE);
         MiningArea previewArea = this.minerLogic.getPreviewArea();
         if (previewArea != null) previewArea.renderMetaTileEntity(this, x, y, z, partialTicks);
     }
@@ -119,12 +118,12 @@ public class SteamMiner extends MetaTileEntity implements Miner, IControllable, 
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        return this.minerLogic.getRenderBoundingBox();
+        MiningArea previewArea = this.minerLogic.getPreviewArea();
+        return previewArea != null ? previewArea.getRenderBoundingBox() : MinerUtil.EMPTY_AABB;
     }
 
     @Override
     public boolean shouldRenderInPass(int pass) {
-        if (pass == RENDER_PASS_NORMAL) return true;
         MiningArea previewArea = this.minerLogic.getPreviewArea();
         return previewArea != null && previewArea.shouldRenderInPass(pass);
     }
@@ -188,6 +187,13 @@ public class SteamMiner extends MetaTileEntity implements Miner, IControllable, 
         if (this.ventingStuck) return false;
         FluidStack drained = this.importFluids.drain(energyPerTick, simulate);
         return drained != null && drained.amount >= energyPerTick;
+    }
+
+    @Nonnull
+    @Override
+    @SideOnly(Side.CLIENT)
+    public MiningPipeModel getMiningPipeModel() {
+        return MiningPipeModels.BRONZE;
     }
 
     @Override
