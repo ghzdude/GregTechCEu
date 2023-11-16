@@ -891,8 +891,8 @@ public class MetaTileEntityLoader {
                 'W', CABLE, 'S', OreDictNames.chestWood, 'G', GRINDER);
         registerMachineRecipe(MetaTileEntities.WORLD_ACCELERATOR, "IGI", "FHF", "IGI", 'H', HULL, 'F', EMITTER, 'G',
                 SENSOR, 'I', FIELD_GENERATOR);
-        registerMachineRecipe(MetaTileEntities.MINER, "MMM", "WHW", "CSC", 'M', MOTOR, 'W', CABLE, 'H', HULL, 'C',
-                CIRCUIT, 'S', SENSOR);
+        registerMachineRecipe(MetaTileEntities.MINER, "MSM", "WHW", "CGC", 'M', MOTOR, 'W', CABLE, 'H', HULL, 'C',
+                CIRCUIT, 'S', SENSOR, 'G', MetaItems.COMPONENT_GRINDER_DIAMOND);
 
         registerMachineRecipe(MetaTileEntities.MUFFLER_HATCH, "HM", "PR", 'H', HULL, 'M', MOTOR, 'P', PIPE_NORMAL, 'R',
                 ROTOR);
