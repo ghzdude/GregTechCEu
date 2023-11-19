@@ -120,8 +120,8 @@ public class GuiTextures {
     public static final TextureArea BUTTON_MULTI_MAP = TextureArea
             .fullImage("textures/gui/widget/button_multi_map.png");
     public static final TextureArea BUTTON_MINER_AREA_PREVIEW = TextureArea.fullImage("textures/gui/widget/button_miner_area_preview.png");
-    public static final TextureArea BUTTON_MINER_MODES = TextureArea
-            .fullImage("textures/gui/widget/button_miner_modes.png");
+    public static final TextureArea BUTTON_MINER_CONFIG_MODE = TextureArea
+            .fullImage("textures/gui/widget/button_miner_config_mode.png");
     public static final TextureArea BUTTON_THROTTLE_MINUS = TextureArea
             .fullImage("textures/gui/widget/button_throttle_minus.png");
     public static final TextureArea BUTTON_THROTTLE_PLUS = TextureArea
