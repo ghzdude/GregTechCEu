@@ -54,7 +54,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 
 import codechicken.lib.raytracer.CuboidRayTraceResult;
 import codechicken.lib.render.CCRenderState;
@@ -113,7 +112,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     public void invalidateStructure() {
         super.invalidateStructure();
         this.inputFluidInventory = new FluidTankList(true);
-        this.outputInventory = new ItemStackHandler(0);
+        this.outputInventory = new GTItemStackHandler(this, 0);
         this.energyContainer = new EnergyContainerList(Lists.newArrayList());
     }
 
