@@ -792,8 +792,8 @@ public class GTUtility {
      * @param playSound     Whether to play sounds or not
      * @return {@code true} if vented
      */
-    public static boolean tryVenting(@Nonnull World world, @Nonnull BlockPos machinePos,
-                                     @Nonnull EnumFacing ventingSide, float ventingDamage,
+    public static boolean tryVenting(@NotNull World world, @NotNull BlockPos machinePos,
+                                     @NotNull EnumFacing ventingSide, float ventingDamage,
                                      boolean spawnParticle, boolean playSound) {
         BlockPos ventingPos = machinePos.offset(ventingSide);
         IBlockState ventingState = world.getBlockState(ventingPos);

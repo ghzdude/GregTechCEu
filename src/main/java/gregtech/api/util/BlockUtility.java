@@ -2,8 +2,7 @@ package gregtech.api.util;
 
 import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.ore.OrePrefix;
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -14,6 +13,8 @@ import net.minecraft.util.NonNullList;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMaps;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -33,7 +34,7 @@ public class BlockUtility {
         return WRAPPER.captureDrops(false);
     }
 
-    public static boolean isOre(@Nonnull IBlockState state) {
+    public static boolean isOre(@NotNull IBlockState state) {
         return ORE_CACHE.computeIfAbsent(Objects.requireNonNull(state, "state == null"), s -> {
             Item item = Item.getItemFromBlock(s.getBlock());
             int meta = s.getBlock().getMetaFromState(s);
@@ -49,7 +50,7 @@ public class BlockUtility {
      * @param isOre Whether this block state is an ore or not
      * @throws NullPointerException if {@code state == null}
      */
-    public static void markBlockstateAsOre(@Nonnull IBlockState state, boolean isOre) {
+    public static void markBlockstateAsOre(@NotNull IBlockState state, boolean isOre) {
         ORE_CACHE.put(Objects.requireNonNull(state, "state == null"), isOre);
     }
 

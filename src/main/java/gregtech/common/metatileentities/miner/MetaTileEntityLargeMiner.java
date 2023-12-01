@@ -18,7 +18,11 @@ import gregtech.api.metatileentity.IDataInfoProvider;
 import gregtech.api.metatileentity.IFastRenderMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.api.metatileentity.multiblock.*;
+import gregtech.api.metatileentity.multiblock.IMultiblockPart;
+import gregtech.api.metatileentity.multiblock.IProgressBarMultiblock;
+import gregtech.api.metatileentity.multiblock.MultiblockAbility;
+import gregtech.api.metatileentity.multiblock.MultiblockDisplayText;
+import gregtech.api.metatileentity.multiblock.MultiblockWithDisplayBase;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
@@ -31,6 +35,7 @@ import gregtech.client.model.miningpipe.MiningPipeModel;
 import gregtech.client.renderer.ICubeRenderer;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.core.sound.GTSoundEvents;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -44,7 +49,11 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.world.World;
@@ -71,7 +80,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static gregtech.api.unification.material.Materials.DrillingFluid;
 
 public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
-                                      implements Miner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity, IProgressBarMultiblock {
+        implements Miner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity, IProgressBarMultiblock {
 
     @NotNull
     public final LargeMinerType type;
@@ -131,7 +140,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public boolean drainMiningResources(@Nonnull MinedBlockType minedBlockType, boolean pipeExtended, boolean simulate) {
+    public boolean drainMiningResources(@NotNull MinedBlockType minedBlockType, boolean pipeExtended,
+                                        boolean simulate) {
         if (minedBlockType == MinedBlockType.NOTHING) return true;
         if (!drainEnergy(true) || !drainFluid(true)) return false;
         if (!simulate) {
@@ -161,7 +171,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public boolean collectBlockDrops(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state) {
+    public boolean collectBlockDrops(@NotNull World world, @NotNull BlockPos pos, @NotNull IBlockState state) {
         NonNullList<ItemStack> drops = NonNullList.create();
         IItemHandlerModifiable inventory = this.outputInventory;
 
@@ -178,7 +188,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public void onMineOperation(@Nonnull BlockPos pos, boolean isOre, boolean isOrigin) {
+    public void onMineOperation(@NotNull BlockPos pos, boolean isOre, boolean isOrigin) {
         if (isOre) {
             this.lastMinedOre.setPos(pos);
             this.hasLastMinedOre = true;
@@ -186,7 +196,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         }
     }
 
-    @Nonnull
+    @NotNull
     @Override
     @SideOnly(Side.CLIENT)
     public MiningPipeModel getMiningPipeModel() {
@@ -198,7 +208,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     public void renderMetaTileEntity(CCRenderState renderState, Matrix4 translation, IVertexOperation[] pipeline) {
         super.renderMetaTileEntity(renderState, translation, pipeline);
         this.getFrontOverlay().renderOrientedState(renderState, translation, pipeline, getFrontFacing(),
-                isActive(), isWorkingEnabled());
+                isActive(),
+                isWorkingEnabled());
         if (isStructureFormed()) {
             EnumFacing f = getFrontFacing().getOpposite();
             Textures.PIPE_IN_OVERLAY.renderSided(EnumFacing.DOWN, renderState,
@@ -248,6 +259,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         }
     }
 
+    @NotNull
     @Override
     protected BlockPattern createStructurePattern() {
         return FactoryBlockPattern.start()
@@ -258,7 +270,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 .where('X', this.type.getCasing()
                         .or(abilities(MultiblockAbility.EXPORT_ITEMS).setMaxGlobalLimited(1).setPreviewCount(1))
                         .or(abilities(MultiblockAbility.IMPORT_FLUIDS).setExactLimit(1).setPreviewCount(1))
-                        .or(abilities(MultiblockAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3).setPreviewCount(1)))
+                        .or(abilities(MultiblockAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3)
+                                .setPreviewCount(1)))
                 .where('C', this.type.getCasing())
                 .where('F', this.type.getFrame())
                 .where('#', any())
@@ -271,13 +284,17 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World player, @Nonnull List<String> tooltip, boolean advanced) {
+    public void addInformation(ItemStack stack, @Nullable World player, @NotNull List<String> tooltip,
+                               boolean advanced) {
         int workingAreaChunks = this.minerLogic.getMaximumChunkDiameter();
         tooltip.add(I18n.format("gregtech.machine.miner.multi.modes"));
         tooltip.add(I18n.format("gregtech.machine.miner.multi.production"));
-        tooltip.add(I18n.format("gregtech.machine.miner.fluid_usage", this.drillingFluidConsumePerTick, DrillingFluid.getLocalizedName()));
-        tooltip.add(I18n.format("gregtech.universal.tooltip.working_area_chunks_max", workingAreaChunks, workingAreaChunks));
-        tooltip.add(I18n.format("gregtech.universal.tooltip.energy_tier_range", GTValues.VNF[this.tier], GTValues.VNF[this.tier + 1]));
+        tooltip.add(I18n.format("gregtech.machine.miner.fluid_usage", this.drillingFluidConsumePerTick,
+                DrillingFluid.getLocalizedName()));
+        tooltip.add(I18n.format("gregtech.universal.tooltip.working_area_chunks_max", workingAreaChunks,
+                workingAreaChunks));
+        tooltip.add(I18n.format("gregtech.universal.tooltip.energy_tier_range", GTValues.VNF[this.tier],
+                GTValues.VNF[this.tier + 1]));
     }
 
     @Override
@@ -305,7 +322,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         return b;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     protected Widget getFlexButton(int x, int y, int width, int height) {
         AtomicBoolean stateHolder = this.uiConfigModeStateHolder;
@@ -363,10 +380,12 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
             ITextComponent hoverText;
             if (yLimit > 0) {
                 value = new TextComponentString(String.format("%,d", yLimit));
-                hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip", value.createCopy());
+                hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip",
+                        value.createCopy());
             } else {
                 value = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.no_value");
-                hoverText = new TextComponentTranslation("gregtech.machine.miner.display.y_limit.value_hover_tooltip.no_value");
+                hoverText = new TextComponentTranslation(
+                        "gregtech.machine.miner.display.y_limit.value_hover_tooltip.no_value");
             }
             textList.add(new TextComponentTranslation(
                     "gregtech.machine.miner.display.y_limit", new TextComponentString("")
@@ -393,7 +412,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 replaceOreText = new TextComponentString("[")
                         .appendSibling(replaceOreText.setStyle(new Style().setColor(TextFormatting.AQUA)))
                         .appendText("]").setStyle(button(this.minerLogic.isReplaceOreWithAir() ?
-                                MinerUtil.DISPLAY_CLICK_REPLACE_ORE_DISABLE : MinerUtil.DISPLAY_CLICK_REPLACE_ORE_ENABLE));
+                                MinerUtil.DISPLAY_CLICK_REPLACE_ORE_DISABLE :
+                                MinerUtil.DISPLAY_CLICK_REPLACE_ORE_ENABLE));
             }
 
             textList.add(new TextComponentTranslation("gregtech.machine.miner.display.replace_ore", replaceOreText));
@@ -430,40 +450,43 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 "gregtech.machine.miner.display.done"));
     }
 
-    @Nonnull
+    @NotNull
     protected static ITextComponent previewAreaButton(boolean previewEnabled) {
         return new TextComponentTranslation(previewEnabled ?
                 "gregtech.machine.miner.display.working_area.hide_preview" :
                 "gregtech.machine.miner.display.working_area.preview")
-                .setStyle(button(previewEnabled ? MinerUtil.DISPLAY_CLICK_AREA_PREVIEW_HIDE : MinerUtil.DISPLAY_CLICK_AREA_PREVIEW));
+                .setStyle(button(previewEnabled ? MinerUtil.DISPLAY_CLICK_AREA_PREVIEW_HIDE :
+                        MinerUtil.DISPLAY_CLICK_AREA_PREVIEW));
     }
 
-    @Nonnull
-    protected static ITextComponent incrButton(int currentValue, int maxValue, @Nonnull String event) {
+    @NotNull
+    protected static ITextComponent incrButton(int currentValue, int maxValue, @NotNull String event) {
         return currentValue >= maxValue ?
                 new TextComponentTranslation("gregtech.machine.miner.display.incr.disabled") :
                 new TextComponentTranslation("gregtech.machine.miner.display.incr").setStyle(button(event));
     }
 
-    @Nonnull
-    protected static ITextComponent decrButton(int currentValue, int minValue, @Nonnull String event) {
+    @NotNull
+    protected static ITextComponent decrButton(int currentValue, int minValue, @NotNull String event) {
         return currentValue <= minValue ?
                 new TextComponentTranslation("gregtech.machine.miner.display.decr.disabled") :
                 new TextComponentTranslation("gregtech.machine.miner.display.decr").setStyle(button(event));
     }
 
-    @Nonnull
-    protected static ITextComponent toggleButton(boolean currentValue, boolean canInteract, @Nonnull String onEvent, @Nonnull String offEvent) {
+    @NotNull
+    protected static ITextComponent toggleButton(boolean currentValue, boolean canInteract, @NotNull String onEvent,
+                                                 @NotNull String offEvent) {
         return canInteract ?
                 new TextComponentTranslation(currentValue ?
                         "gregtech.machine.miner.display.enabled" : "gregtech.machine.miner.display.disabled") :
                 new TextComponentTranslation(currentValue ?
-                        "gregtech.machine.miner.display.toggle.enabled" : "gregtech.machine.miner.display.toggle.disabled")
+                        "gregtech.machine.miner.display.toggle.enabled" :
+                        "gregtech.machine.miner.display.toggle.disabled")
                         .setStyle(button(currentValue ? offEvent : onEvent));
     }
 
-    @Nonnull
-    protected static Style button(@Nonnull String event) {
+    @NotNull
+    protected static Style button(@NotNull String event) {
         return new Style().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "@!" + event));
     }
 
@@ -582,7 +605,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         this.minerLogic.receiveCustomData(dataId, buf);
     }
 
-
     @Override
     @SideOnly(Side.CLIENT)
     public ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart) {
@@ -679,7 +701,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     @Override
     public List<ITextComponent> getDataInfo() {
         int diameter = this.minerLogic.getCurrentDiameter();
-        return Collections.singletonList(new TextComponentTranslation("gregtech.machine.miner.working_area", diameter, diameter));
+        return Collections.singletonList(
+                new TextComponentTranslation("gregtech.machine.miner.working_area", diameter, diameter));
     }
 
     @Override
