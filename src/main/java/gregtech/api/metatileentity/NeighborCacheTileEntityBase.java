@@ -10,11 +10,11 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.EnumMap;
 
 public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase implements INeighborCache {
 
-    private final TileEntity[] neighbors = new TileEntity[6];
+    private final EnumMap<EnumFacing, TileEntity> neighbors = new EnumMap<>(EnumFacing.class);
     private boolean neighborsInvalidated = false;
 
     public NeighborCacheTileEntityBase() {
@@ -23,7 +23,9 @@ public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase i
 
     protected void invalidateNeighbors() {
         if (!this.neighborsInvalidated) {
-            Arrays.fill(this.neighbors, this);
+            for (EnumFacing facing : EnumFacing.values()) {
+                this.neighbors.put(facing, this);
+            }
             this.neighborsInvalidated = true;
         }
     }
@@ -49,17 +51,16 @@ public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase i
     @Override
     public @Nullable TileEntity getNeighbor(@NotNull EnumFacing facing) {
         if (world == null || pos == null) return null;
-        int i = facing.getIndex();
-        TileEntity neighbor = this.neighbors[i];
+        var neighbor = this.neighbors.get(facing);
         if (neighbor == this || (neighbor != null && neighbor.isInvalid())) {
             neighbor = world.getTileEntity(pos.offset(facing));
-            this.neighbors[i] = neighbor;
+            this.neighbors.put(facing, neighbor);
             this.neighborsInvalidated = false;
         }
         return neighbor;
     }
 
     public void onNeighborChanged(@NotNull EnumFacing facing) {
-        this.neighbors[facing.getIndex()] = this;
+        this.neighbors.put(facing, this);
     }
 }
