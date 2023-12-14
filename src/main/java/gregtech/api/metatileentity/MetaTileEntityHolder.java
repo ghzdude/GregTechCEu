@@ -378,6 +378,7 @@ public class MetaTileEntityHolder extends TickableTileEntityBase implements IGre
         if (Loader.isModLoaded(GTValues.MODID_APPENG)) {
             onChunkUnloadAE();
         }
+        invalidate();
     }
 
     @Override

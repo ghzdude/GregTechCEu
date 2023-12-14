@@ -14,7 +14,7 @@ import java.util.EnumMap;
 
 public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase implements INeighborCache {
 
-    private final EnumMap<EnumFacing, TileEntity> neighbors = new EnumMap<>(EnumFacing.class);
+    private final EnumMap<EnumFacing, CacheData> neighbors = new EnumMap<>(EnumFacing.class);
     private boolean neighborsInvalidated = false;
 
     public NeighborCacheTileEntityBase() {
@@ -24,7 +24,8 @@ public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase i
     protected void invalidateNeighbors() {
         if (!this.neighborsInvalidated) {
             for (EnumFacing facing : EnumFacing.values()) {
-                this.neighbors.put(facing, this);
+                var cacheData = this.neighbors.computeIfAbsent(facing, k -> new CacheData());
+                cacheData.clearCache();
             }
             this.neighborsInvalidated = true;
         }
@@ -51,16 +52,47 @@ public abstract class NeighborCacheTileEntityBase extends SyncedTileEntityBase i
     @Override
     public @Nullable TileEntity getNeighbor(@NotNull EnumFacing facing) {
         if (world == null || pos == null) return null;
-        var neighbor = this.neighbors.get(facing);
-        if (neighbor == this || (neighbor != null && neighbor.isInvalid())) {
+        var cacheData = this.neighbors.get(facing);
+        var neighbor = cacheData.getCache();
+        if (!cacheData.isChecked() || (neighbor != null && neighbor.isInvalid())) {
             neighbor = world.getTileEntity(pos.offset(facing));
-            this.neighbors.put(facing, neighbor);
+            cacheData.setCache(neighbor);
+            cacheData.setChecked(true);
             this.neighborsInvalidated = false;
         }
         return neighbor;
     }
 
     public void onNeighborChanged(@NotNull EnumFacing facing) {
-        this.neighbors.put(facing, this);
+        this.neighbors.get(facing).clearCache();
+    }
+
+    private static class CacheData {
+        private TileEntity cache = null;
+        private boolean checked = false;
+
+        public boolean isChecked () {
+            return checked;
+        }
+
+        public void setChecked(boolean checked) {
+            this.checked = checked;
+        }
+
+        public TileEntity getCache() {
+            return this.cache;
+        }
+
+        public void setCache(TileEntity cache) {
+            if (this.cache != null) {
+                this.cache.invalidate();
+            }
+            this.cache = cache;
+        }
+
+        public void clearCache() {
+            this.cache = null;
+            this.checked = false;
+        }
     }
 }
