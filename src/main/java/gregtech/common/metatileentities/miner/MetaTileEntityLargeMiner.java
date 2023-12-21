@@ -80,7 +80,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static gregtech.api.unification.material.Materials.DrillingFluid;
 
 public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
-        implements Miner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity, IProgressBarMultiblock {
+                                      implements Miner, IControllable, IDataInfoProvider, IFastRenderMetaTileEntity,
+                                      IProgressBarMultiblock {
 
     @NotNull
     public final LargeMinerType type;
@@ -179,8 +180,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
             drops.add(ToolHelper.getSilkTouchDrop(state));
         } else if (MinerUtil.applyTieredHammerDrops(GTUtility.toItem(state), drops,
                 this.getEnergyTier(), RecipeMaps.MACERATOR_RECIPES, 3) == 0) {
-            state.getBlock().getDrops(drops, world, pos, state, 0); // fallback
-        }
+                    state.getBlock().getDrops(drops, world, pos, state, 0); // fallback
+                }
         boolean result = GTTransferUtils.addItemsToItemHandler(inventory, true, drops);
         this.inventoryFull = result;
         if (result) GTTransferUtils.addItemsToItemHandler(inventory, false, drops);
@@ -329,9 +330,9 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         if (stateHolder == null) return super.getFlexButton(x, y, width, height);
         return new ImageCycleButtonWidget(x, y, width, height, GuiTextures.BUTTON_MINER_CONFIG_MODE,
                 stateHolder::get, stateHolder::set)
-                .setTooltipHoverString(i -> i == 0 ?
-                        "gregtech.machine.miner.button.tooltip.info" :
-                        "gregtech.machine.miner.button.tooltip.config");
+                        .setTooltipHoverString(i -> i == 0 ?
+                                "gregtech.machine.miner.button.tooltip.info" :
+                                "gregtech.machine.miner.button.tooltip.config");
     }
 
     @Override
@@ -389,10 +390,11 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
             }
             textList.add(new TextComponentTranslation(
                     "gregtech.machine.miner.display.y_limit", new TextComponentString("")
-                    .appendSibling(incrButton(yLimit, Integer.MAX_VALUE, MinerUtil.DISPLAY_CLICK_Y_LIMIT_INCR))
-                    .appendText(" ").appendSibling(decrButton(yLimit, 0, MinerUtil.DISPLAY_CLICK_Y_LIMIT_DECR))
-                    .appendText(" ").appendSibling(value))
-                    .setStyle(new Style().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))));
+                            .appendSibling(incrButton(yLimit, Integer.MAX_VALUE, MinerUtil.DISPLAY_CLICK_Y_LIMIT_INCR))
+                            .appendText(" ").appendSibling(decrButton(yLimit, 0, MinerUtil.DISPLAY_CLICK_Y_LIMIT_DECR))
+                            .appendText(" ").appendSibling(value))
+                                    .setStyle(new Style()
+                                            .setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))));
 
             textList.add(new TextComponentTranslation("gregtech.machine.miner.display.repeat",
                     toggleButton(this.minerLogic.isRepeat(), this.minerLogic.isWorking(),
@@ -455,8 +457,8 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         return new TextComponentTranslation(previewEnabled ?
                 "gregtech.machine.miner.display.working_area.hide_preview" :
                 "gregtech.machine.miner.display.working_area.preview")
-                .setStyle(button(previewEnabled ? MinerUtil.DISPLAY_CLICK_AREA_PREVIEW_HIDE :
-                        MinerUtil.DISPLAY_CLICK_AREA_PREVIEW));
+                        .setStyle(button(previewEnabled ? MinerUtil.DISPLAY_CLICK_AREA_PREVIEW_HIDE :
+                                MinerUtil.DISPLAY_CLICK_AREA_PREVIEW));
     }
 
     @NotNull
@@ -482,7 +484,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 new TextComponentTranslation(currentValue ?
                         "gregtech.machine.miner.display.toggle.enabled" :
                         "gregtech.machine.miner.display.toggle.disabled")
-                        .setStyle(button(currentValue ? offEvent : onEvent));
+                                .setStyle(button(currentValue ? offEvent : onEvent));
     }
 
     @NotNull
