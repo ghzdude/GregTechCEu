@@ -123,9 +123,11 @@ public class OreDictionaryItemFilter extends ItemFilter {
     }
 
     @Override
-    public Object matchItemStack(ItemStack itemStack) {
-        return matchesItemStack(itemStack) ?
-                "wtf is this system?? i can put any non null object here and it i will work??? $arch" : null;
+    public MatchResult<Integer> matchItemStack(ItemStack itemStack) {
+        // "wtf is this system?? i can put any non null object here and it i will work??? $arch"
+        // not anymore :thanosdaddy: -ghzdude
+        var match = matchesItemStack(itemStack) ? Match.SUCCEED : Match.FAIL;
+        return ItemFilter.createResult(match, -1);
     }
 
     public boolean matchesItemStack(ItemStack itemStack) {
@@ -172,7 +174,7 @@ public class OreDictionaryItemFilter extends ItemFilter {
     }
 
     @Override
-    public int getSlotTransferLimit(Object matchSlot, int globalTransferLimit) {
+    public int getSlotTransferLimit(int matchSlot, int globalTransferLimit) {
         return globalTransferLimit;
     }
 
