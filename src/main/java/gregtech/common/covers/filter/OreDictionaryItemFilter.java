@@ -1,5 +1,6 @@
 package gregtech.common.covers.filter;
 
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
 import com.cleanroommc.modularui.widget.Widget;
 
 import gregtech.api.gui.GuiTextures;
@@ -22,6 +23,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.TextFormatting;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -118,8 +120,8 @@ public class OreDictionaryItemFilter extends ItemFilter {
     }
 
     @Override
-    public Widget<?> initUI() {
-        return null;
+    public @NotNull Widget<?> initUI(GuiSyncManager syncManager) {
+        return new Widget<>();
     }
 
     @Override
