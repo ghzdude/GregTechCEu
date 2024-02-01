@@ -11,6 +11,7 @@ import gregtech.api.items.metaitem.MetaItem;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.SteamMetaTileEntity;
 import gregtech.api.modules.GregTechModule;
+import gregtech.api.mui.GregTechGuiTransferHandler;
 import gregtech.api.recipes.Recipe;
 import gregtech.api.recipes.RecipeMap;
 import gregtech.api.recipes.category.GTRecipeCategory;
@@ -163,6 +164,9 @@ public class JustEnoughItemsModule extends IntegrationSubmodule implements IModP
                 jeiHelpers.recipeTransferHandlerHelper());
         registry.getRecipeTransferRegistry().addRecipeTransferHandler(craftingStationGuiHandler,
                 VanillaRecipeCategoryUid.CRAFTING);
+        registry.getRecipeTransferRegistry().addRecipeTransferHandler(new GregTechGuiTransferHandler(
+                        jeiHelpers.recipeTransferHandlerHelper()
+                ), VanillaRecipeCategoryUid.CRAFTING);
 
         for (RecipeMap<?> recipeMap : RecipeMap.getRecipeMaps()) {
             if (recipeMap.getRecipeMapUI().isJEIVisible()) {
