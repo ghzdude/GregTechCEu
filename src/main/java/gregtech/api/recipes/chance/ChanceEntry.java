@@ -18,7 +18,7 @@ public interface ChanceEntry<T> {
     /**
      * @return the chance of operating with the ingredient
      */
-    int getChance();
+    float getChance();
 
     /**
      * @return a copy of the chance entry

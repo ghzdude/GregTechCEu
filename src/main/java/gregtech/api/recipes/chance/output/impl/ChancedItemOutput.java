@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ChancedItemOutput extends BoostableChanceOutput<ItemStack> {
 
-    public ChancedItemOutput(@NotNull ItemStack ingredient, int chance, int chanceBoost) {
+    public ChancedItemOutput(@NotNull ItemStack ingredient, float chance, int chanceBoost) {
         super(ingredient, chance, chanceBoost);
     }
 

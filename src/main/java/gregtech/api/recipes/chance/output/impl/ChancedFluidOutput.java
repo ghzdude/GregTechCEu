@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ChancedFluidOutput extends BoostableChanceOutput<FluidStack> {
 
-    public ChancedFluidOutput(@NotNull FluidStack ingredient, int chance, int chanceBoost) {
+    public ChancedFluidOutput(@NotNull FluidStack ingredient, float chance, int chanceBoost) {
         super(ingredient, chance, chanceBoost);
     }
 

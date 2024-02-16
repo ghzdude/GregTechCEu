@@ -13,7 +13,7 @@ public abstract class BoostableChanceOutput<T> extends ChancedOutput<T> implemen
 
     private final int chanceBoost;
 
-    public BoostableChanceOutput(@NotNull T ingredient, int chance, int chanceBoost) {
+    public BoostableChanceOutput(@NotNull T ingredient, float chance, int chanceBoost) {
         super(ingredient, chance);
         this.chanceBoost = chanceBoost;
     }

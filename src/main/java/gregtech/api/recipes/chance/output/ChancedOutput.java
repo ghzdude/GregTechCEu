@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class ChancedOutput<T> extends BaseChanceEntry<T> {
 
-    public ChancedOutput(@NotNull T ingredient, int chance) {
+    public ChancedOutput(@NotNull T ingredient, float chance) {
         super(ingredient, chance);
     }
 }

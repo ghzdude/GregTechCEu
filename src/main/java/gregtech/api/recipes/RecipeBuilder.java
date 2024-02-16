@@ -50,7 +50,7 @@ import java.util.function.Consumer;
  * @see Recipe
  */
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "UnusedReturnValue", "unused" })
 public class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     protected RecipeMap<R> recipeMap;
@@ -528,7 +528,7 @@ public class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
-    public R chancedOutput(ItemStack stack, int chance, int tierChanceBoost) {
+    public R chancedOutput(ItemStack stack, float chance, int tierChanceBoost) {
         if (stack == null || stack.isEmpty()) {
             return (R) this;
         }
@@ -576,7 +576,7 @@ public class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
-    public R chancedFluidOutput(FluidStack stack, int chance, int tierChanceBoost) {
+    public R chancedFluidOutput(FluidStack stack, float chance, int tierChanceBoost) {
         if (stack == null || stack.amount == 0) {
             return (R) this;
         }
@@ -659,7 +659,7 @@ public class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     public void chancedOutputsMultiply(Recipe chancedOutputsFrom, int numberOfOperations) {
         for (ChancedItemOutput entry : chancedOutputsFrom.getChancedOutputs().getChancedEntries()) {
-            int chance = entry.getChance();
+            float chance = entry.getChance();
             int boost = entry.getChanceBoost();
 
             // Add individual chanced outputs per number of parallel operations performed, to mimic regular recipes.
@@ -670,7 +670,7 @@ public class RecipeBuilder<R extends RecipeBuilder<R>> {
             }
         }
         for (ChancedFluidOutput entry : chancedOutputsFrom.getChancedFluidOutputs().getChancedEntries()) {
-            int chance = entry.getChance();
+            float chance = entry.getChance();
             int boost = entry.getChanceBoost();
 
             // Add individual chanced outputs per number of parallel operations performed, to mimic regular recipes.
