@@ -88,16 +88,15 @@ public class ItemFilterContainer extends BaseFilterContainer
     }
 
     /** Uses Cleanroom MUI */
-    @SuppressWarnings("DataFlowIssue")
     public IWidget initUI(ModularPanel main, PanelSyncManager manager) {
 
-        // the panel can't be opened if there's no filter, so `getFilter()` will never be null
-        var filterPanel = getItemFilter().createPopupPanel(manager);
-        getItemFilter().setMaxTransferSize(getMaxTransferSize());
+        var panel = manager.panel("filter_panel", main, (panelSyncManager, panelSyncHandler) -> {
+            // the panel can't be opened if there's no filter, so `getFilter()` will never be null
+            //noinspection DataFlowIssue
+            getItemFilter().setMaxTransferSize(getMaxTransferSize());
+            return getItemFilter().createPopupPanel(manager);
+        });
 
-        var panel = manager.panel("filter_panel", main, (panelSyncManager, panelSyncHandler) -> filterPanel);
-
-//        manager.syncValue("filter_panel", panel);
         var filterButton = new ButtonWidget<>();
         filterButton.setEnabled(hasFilter());
 
@@ -109,7 +108,7 @@ public class ItemFilterContainer extends BaseFilterContainer
                                 .singletonSlotGroup(101)
                                 .changeListener((newItem, onlyAmountChanged, client, init) -> {
                                     if (!FilterTypeRegistry.isFilter(newItem) && panel.isPanelOpen()) {
-                                        filterPanel.closeIfOpen();
+                                        panel.closePanel();
                                     }
                                 }))
                         .size(18).marginRight(2)
@@ -117,10 +116,10 @@ public class ItemFilterContainer extends BaseFilterContainer
                 .child(filterButton
                         .setEnabledIf(w -> hasFilter())
                         .onMousePressed(i -> {
-                            if (!filterPanel.isOpen()) {
-                                filterPanel.openIn(main.getScreen());
+                            if (!panel.isPanelOpen()) {
+                                panel.openPanel();
                             } else {
-                                filterPanel.closeIfOpen();
+                                panel.closePanel();
                             }
                             Interactable.playButtonClickSound();
                             return true;

@@ -100,14 +100,13 @@ public class FluidFilterContainer extends BaseFilterContainer
 
     /** Uses Cleanroom MUI */
     public IWidget initUI(ModularPanel main, PanelSyncManager manager) {
-        @SuppressWarnings("DataFlowIssue")
-        var panel = new PanelSyncHandler(main, (panelSyncManager, panelSyncHandler) -> {
+        var panel = manager.panel("filter_panel", main, (panelSyncManager, panelSyncHandler) -> {
             // the panel can't be opened if there's no filter, so `getFilter()` will never be null
+            //noinspection DataFlowIssue
             getFluidFilter().setMaxTransferSize(getMaxTransferSize());
-            return getFluidFilter().createPopupPanel(panelSyncManager);
+            return getFluidFilter().createPopupPanel(manager);
         });
 
-        manager.syncValue("filter_panel", panel);
         var filterButton = new ButtonWidget<>();
         filterButton.setEnabled(hasFilter());
 
@@ -116,12 +115,12 @@ public class FluidFilterContainer extends BaseFilterContainer
                 .child(new ItemSlot()
                         .slot(SyncHandlers.itemSlot(this, 0)
                                 .filter(FilterTypeRegistry::isFluidFilter)
-                                .singletonSlotGroup(101))
-                        .onUpdateListener(w -> {
-                            if (!hasFilter() && panel.isPanelOpen()) {
-                                panel.closePanel(false);
-                            }
-                        }, true)
+                                .singletonSlotGroup(101)
+                                .changeListener((newItem, onlyAmountChanged, client, init) -> {
+                                    if (!FilterTypeRegistry.isFilter(newItem) && panel.isPanelOpen()) {
+                                        panel.closePanel();
+                                    }
+                                }))
                         .size(18).marginRight(2)
                         .background(GTGuiTextures.SLOT, GTGuiTextures.FILTER_SLOT_OVERLAY))
                 .child(filterButton
@@ -132,7 +131,7 @@ public class FluidFilterContainer extends BaseFilterContainer
                                 panel.openPanel();
                                 success = true;
                             } else if (panel.isValid()) {
-                                panel.closePanel(false);
+                                panel.closePanel();
                                 success = true;
                             }
                             Interactable.playButtonClickSound();
