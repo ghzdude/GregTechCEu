@@ -126,16 +126,13 @@ public class FluidFilterContainer extends BaseFilterContainer
                 .child(filterButton
                         .setEnabledIf(w -> hasFilter())
                         .onMousePressed(i -> {
-                            boolean success = false;
                             if (!panel.isPanelOpen()) {
                                 panel.openPanel();
-                                success = true;
-                            } else if (panel.isValid()) {
+                            } else {
                                 panel.closePanel();
-                                success = true;
                             }
                             Interactable.playButtonClickSound();
-                            return success;
+                            return true;
                         }))
                 .child(IKey.dynamic(() -> hasFilter() ?
                         getFilterStack().getDisplayName() :
