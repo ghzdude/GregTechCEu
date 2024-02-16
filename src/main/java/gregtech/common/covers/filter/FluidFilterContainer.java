@@ -12,7 +12,7 @@ import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.api.widget.Interactable;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.utils.Alignment;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.PanelSyncHandler;
 import com.cleanroommc.modularui.value.sync.SyncHandlers;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
@@ -99,17 +99,14 @@ public class FluidFilterContainer extends BaseFilterContainer
     }
 
     /** Uses Cleanroom MUI */
-    public IWidget initUI(ModularPanel main, GuiSyncManager manager) {
-        var panel = new PanelSyncHandler(main) {
-
+    public IWidget initUI(ModularPanel main, PanelSyncManager manager) {
+        @SuppressWarnings("DataFlowIssue")
+        var panel = new PanelSyncHandler(main, (panelSyncManager, panelSyncHandler) -> {
             // the panel can't be opened if there's no filter, so `getFilter()` will never be null
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ModularPanel createUI(ModularPanel mainPanel, GuiSyncManager syncManager) {
-                getFilter().setMaxTransferSize(getMaxTransferSize());
-                return getFilter().createPopupPanel(syncManager);
-            }
-        };
+            getFluidFilter().setMaxTransferSize(getMaxTransferSize());
+            return getFluidFilter().createPopupPanel(panelSyncManager);
+        });
+
         manager.syncValue("filter_panel", panel);
         var filterButton = new ButtonWidget<>();
         filterButton.setEnabled(hasFilter());
@@ -122,7 +119,7 @@ public class FluidFilterContainer extends BaseFilterContainer
                                 .singletonSlotGroup(101))
                         .onUpdateListener(w -> {
                             if (!hasFilter() && panel.isPanelOpen()) {
-                                panel.closePanel();
+                                panel.closePanel(false);
                             }
                         }, true)
                         .size(18).marginRight(2)
@@ -135,7 +132,7 @@ public class FluidFilterContainer extends BaseFilterContainer
                                 panel.openPanel();
                                 success = true;
                             } else if (panel.isValid()) {
-                                panel.closePanel();
+                                panel.closePanel(false);
                                 success = true;
                             }
                             Interactable.playButtonClickSound();

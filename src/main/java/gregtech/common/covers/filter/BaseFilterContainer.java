@@ -10,7 +10,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -176,7 +176,7 @@ public abstract class BaseFilterContainer extends ItemStackHandler {
     }
 
     /** Uses Cleanroom MUI */
-    public abstract IWidget initUI(ModularPanel main, GuiSyncManager manager);
+    public abstract IWidget initUI(ModularPanel main, PanelSyncManager manager);
 
     public void writeInitialSyncData(PacketBuffer packetBuffer) {
         packetBuffer.writeItemStack(this.getFilterStack());

@@ -17,7 +17,7 @@ import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.api.widget.Interactable;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.utils.Alignment;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.value.sync.PanelSyncHandler;
 import com.cleanroommc.modularui.value.sync.SyncHandlers;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
@@ -88,18 +88,16 @@ public class ItemFilterContainer extends BaseFilterContainer
     }
 
     /** Uses Cleanroom MUI */
-    public IWidget initUI(ModularPanel main, GuiSyncManager manager) {
-        var panel = new PanelSyncHandler(main) {
+    @SuppressWarnings("DataFlowIssue")
+    public IWidget initUI(ModularPanel main, PanelSyncManager manager) {
 
-            // the panel can't be opened if there's no filter, so `getFilter()` will never be null
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ModularPanel createUI(ModularPanel mainPanel, GuiSyncManager syncManager) {
-                getItemFilter().setMaxTransferSize(getMaxTransferSize());
-                return getItemFilter().createPopupPanel(syncManager);
-            }
-        };
-        manager.syncValue("filter_panel", panel);
+        // the panel can't be opened if there's no filter, so `getFilter()` will never be null
+        var filterPanel = getItemFilter().createPopupPanel(manager);
+        getItemFilter().setMaxTransferSize(getMaxTransferSize());
+
+        var panel = manager.panel("filter_panel", main, (panelSyncManager, panelSyncHandler) -> filterPanel);
+
+//        manager.syncValue("filter_panel", panel);
         var filterButton = new ButtonWidget<>();
         filterButton.setEnabled(hasFilter());
 
@@ -108,27 +106,24 @@ public class ItemFilterContainer extends BaseFilterContainer
                 .child(new ItemSlot()
                         .slot(SyncHandlers.itemSlot(this, 0)
                                 .filter(FilterTypeRegistry::isItemFilter)
-                                .singletonSlotGroup(101))
-                        .onUpdateListener(w -> {
-                            if (!hasFilter() && panel.isPanelOpen()) {
-                                panel.closePanel();
-                            }
-                        }, true)
+                                .singletonSlotGroup(101)
+                                .changeListener((newItem, onlyAmountChanged, client, init) -> {
+                                    if (!FilterTypeRegistry.isFilter(newItem) && panel.isPanelOpen()) {
+                                        filterPanel.closeIfOpen();
+                                    }
+                                }))
                         .size(18).marginRight(2)
                         .background(GTGuiTextures.SLOT, GTGuiTextures.FILTER_SLOT_OVERLAY))
                 .child(filterButton
                         .setEnabledIf(w -> hasFilter())
                         .onMousePressed(i -> {
-                            boolean success = false;
-                            if (!panel.isPanelOpen()) {
-                                panel.openPanel();
-                                success = true;
-                            } else if (panel.isValid()) {
-                                panel.closePanel();
-                                success = true;
+                            if (!filterPanel.isOpen()) {
+                                filterPanel.openIn(main.getScreen());
+                            } else {
+                                filterPanel.closeIfOpen();
                             }
                             Interactable.playButtonClickSound();
-                            return success;
+                            return true;
                         }))
                 .child(IKey.dynamic(() -> hasFilter() ?
                         getFilterStack().getDisplayName() :
