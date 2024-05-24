@@ -1,18 +1,22 @@
 package gregtech.common.metatileentities.storage;
 
+import com.cleanroommc.modularui.api.widget.Interactable;
 import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.GuiScreenWrapper;
 import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.screen.viewport.GuiContext;
+import com.cleanroommc.modularui.theme.WidgetTheme;
 import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+
+import com.cleanroommc.modularui.value.sync.SyncHandler;
+import com.cleanroommc.modularui.widget.Widget;
+import com.cleanroommc.modularui.widgets.layout.Column;
+
+import com.cleanroommc.modularui.widgets.slot.ModularSlot;
 
 import gregtech.api.capability.GregtechTileCapabilities;
 import gregtech.api.capability.IActiveOutputSide;
 import gregtech.api.cover.CoverRayTracer;
-import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.ModularUI.Builder;
-import gregtech.api.gui.widgets.AdvancedTextWidget;
-import gregtech.api.gui.widgets.SlotWidget;
-import gregtech.api.gui.widgets.ToggleButtonWidget;
 import gregtech.api.items.itemhandlers.GTItemStackHandler;
 import gregtech.api.metatileentity.IFastRenderMetaTileEntity;
 import gregtech.api.metatileentity.ITieredMetaTileEntity;
@@ -23,10 +27,13 @@ import gregtech.api.mui.GTGuis;
 import gregtech.api.util.GTLog;
 import gregtech.api.util.GTTransferUtils;
 import gregtech.api.util.GTUtility;
-import gregtech.api.util.TextFormattingUtil;
 import gregtech.client.renderer.texture.Textures;
 import gregtech.client.renderer.texture.custom.QuantumStorageRenderer;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -38,8 +45,6 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -55,6 +60,8 @@ import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -282,11 +289,108 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
     @Override
     public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
+
         return GTGuis.createPanel(this, 176, 166)
                 .padding(4)
-                .child(GTGuiTextures.DISPLAY.asWidget()
+                .child(new Column()
+                        .child(new QuantumSlot(this.internalInventory)
+                                .size(18)
+                                .background(GTGuiTextures.SLOT)
+                                .leftRel(0.5f)
+                                .topRel(0.5f))
+                        .background(GTGuiTextures.DISPLAY)
                         .widthRel(1.0f)
                         .height(100));
+    }
+
+    private static class QuantumSlot extends Widget<QuantumSlot> implements Interactable {
+        private final QuantumSyncHandler syncHandler;
+
+        private QuantumSlot(IItemHandlerModifiable handler) {
+            this.syncHandler = new QuantumSyncHandler(handler);
+            setSyncHandler(this.syncHandler);
+//            tooltip().setAutoUpdate(true).setHasTitleMargin(true);
+//            tooltipBuilder(tooltip -> {
+//                tooltip.excludeArea(getArea());
+//                if (!isSynced()) return;
+//                ItemStack stack = this.syncHandler.getStack();
+//                if (stack.isEmpty()) return;
+//                tooltip.addStringLines(getScreen().getScreenWrapper().getItemToolTip(stack));
+//            });
+        }
+
+        @Override
+        public void draw(GuiContext context, WidgetTheme widgetTheme) {
+            GuiScreenWrapper guiScreen = getScreen().getScreenWrapper();
+            ItemStack itemstack = this.syncHandler.getStack();
+            if (itemstack.isEmpty()) return;
+
+            guiScreen.setZ(100f);
+            guiScreen.getItemRenderer().zLevel = 100.0F;
+
+            int cachedCount = itemstack.getCount();
+            itemstack.setCount(1); // required to not render the amount overlay
+
+            RenderHelper.enableGUIStandardItemLighting();
+            GlStateManager.pushMatrix();
+            RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+            renderItem.renderItemAndEffectIntoGUI(itemstack, 1, 1);
+            renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, itemstack, 1, 1, null);
+            GlStateManager.popMatrix();
+            RenderHelper.enableStandardItemLighting();
+            GlStateManager.disableLighting();
+            itemstack.setCount(cachedCount);
+
+            guiScreen.getItemRenderer().zLevel = 0.0F;
+            guiScreen.setZ(0f);
+        }
+
+        @NotNull
+        @Override
+        public Result onMousePressed(int mouseButton) {
+            // todo send stack to player
+            return Interactable.super.onMousePressed(mouseButton);
+        }
+    }
+
+    private static class QuantumModularSlot extends ModularSlot {
+
+        public QuantumModularSlot(IItemHandler itemHandler) {
+            super(itemHandler, 0);
+        }
+    }
+
+    @SuppressWarnings("OverrideOnly")
+    private static class QuantumSyncHandler extends SyncHandler {
+
+        private final IItemHandlerModifiable handler;
+        private final QuantumModularSlot modularSlot;
+
+        private QuantumSyncHandler(IItemHandlerModifiable handler) {
+            this.handler = handler;
+            this.modularSlot = new QuantumModularSlot(handler);
+        }
+
+        @Override
+        @SuppressWarnings("UnstableApiUsage")
+        public void init(String key, GuiSyncManager syncManager) {
+            super.init(key, syncManager);
+            syncManager.getContainer().registerSlot(this.modularSlot);
+        }
+
+        public ItemStack getStack() {
+            return handler.getStackInSlot(0);
+        }
+
+        @Override
+        public void readOnClient(int id, PacketBuffer buf) {
+
+        }
+
+        @Override
+        public void readOnServer(int id, PacketBuffer buf) {
+
+        }
     }
 
 //    @Override
