@@ -73,7 +73,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     private static final String NBT_PARTIALSTACK = "PartialStack";
     private static final String NBT_ITEMCOUNT = "ItemAmount";
     private static final String IS_VOIDING = "IsVoiding";
-    private QuantumChestItemHandler internalInventory;
+    private final QuantumChestItemHandler internalInventory;
 
 //    protected IItemHandler outputItemInventory;
 //    private ItemHandlerList combinedInventory;
@@ -214,47 +214,48 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
         super.addToolUsages(stack, world, tooltip, advanced);
     }
 
-    @Override
-    protected void initializeInventory() {
-        super.initializeInventory();
+//    @Override
+//    protected void initializeInventory() {
+//        super.initializeInventory();
 //        this.itemInventory = new QuantumChestItemHandler();
 //        List<IItemHandler> temp = new ArrayList<>();
 //        temp.add(this.exportItems);
 //        temp.add(this.itemInventory);
 //        this.combinedInventory = new ItemHandlerList(temp);
 //        this.outputItemInventory = new ItemHandlerProxy(new GTItemStackHandler(this, 0), combinedInventory);
-    }
+//    }
 
     @Override
     protected IItemHandlerModifiable createImportItemHandler() {
-        return new GTItemStackHandler(this, 1) {
-
-            @NotNull
-            @Override
-            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-                if (!isItemValid(slot, stack)) return stack;
-                return GTTransferUtils.insertItem(internalInventory, stack, simulate);
-            }
-
-            @Override
-            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-                NBTTagCompound compound = stack.getTagCompound();
-                ItemStack outStack = getExportItems().getStackInSlot(0);
-                boolean outStackMatch = true;
-                if (!outStack.isEmpty()) {
-                    outStackMatch = areItemStackIdentical(stack, outStack);
-                }
-                if (compound == null) return true;
-                return outStackMatch && !(compound.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND) ||
-                        compound.hasKey("Fluid", NBT.TAG_COMPOUND)); // prevents inserting items with NBT to the Quantum
-                                                                     // Chest
-            }
-        };
+        return this.internalInventory;
+//        return new GTItemStackHandler(this, 1) {
+//
+//            @NotNull
+//            @Override
+//            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+//                if (!isItemValid(slot, stack)) return stack;
+//                return GTTransferUtils.insertItem(internalInventory, stack, simulate);
+//            }
+//
+//            @Override
+//            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+//                NBTTagCompound compound = stack.getTagCompound();
+//                ItemStack outStack = getExportItems().getStackInSlot(0);
+//                boolean outStackMatch = true;
+//                if (!outStack.isEmpty()) {
+//                    outStackMatch = areItemStackIdentical(stack, outStack);
+//                }
+//                if (compound == null) return true;
+//                return outStackMatch && !(compound.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND) ||
+//                        compound.hasKey("Fluid", NBT.TAG_COMPOUND)); // prevents inserting items with NBT to the Quantum
+//                                                                     // Chest
+//            }
+//        };
     }
 
     @Override
     protected IItemHandlerModifiable createExportItemHandler() {
-        return new GTItemStackHandler(this, 1);
+        return this.internalInventory;
     }
 
     @Override
@@ -518,7 +519,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
         return new AxisAlignedBB(getPos());
     }
 
-    private static class QuantumChestItemHandler implements IItemHandler {
+    private static class QuantumChestItemHandler implements IItemHandlerModifiable {
 
         protected final long maxStoredItems;
         
@@ -549,6 +550,12 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
             ItemStack resultStack = itemStack.copy();
             resultStack.setCount((int) itemsStored);
             return resultStack;
+        }
+
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+            this.virtualItemStack = stack;
+            this.itemsStoredInside = stack.getCount();
         }
 
         public ItemStack getVirtualItemStack() {
@@ -587,7 +594,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
         @NotNull
         @Override
         public ItemStack insertItem(int slot, @NotNull ItemStack insertedStack, boolean simulate) {
-            if (insertedStack.isEmpty()) {
+            if (insertedStack.isEmpty() || !isItemValid(slot, insertedStack)) {
                 return ItemStack.EMPTY;
             }
 
@@ -599,12 +606,11 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
             }
 
 //            ItemStack exportItems = getExportItems().getStackInSlot(0);
-            ItemStack exportItems = ItemStack.EMPTY;
-
-            // if there is an item in the export slot and the inserted stack does not match, do not insert
-            if (!exportItems.isEmpty() && !areItemStackIdentical(exportItems, insertedStack)) {
-                return insertedStack;
-            }
+//
+//            // if there is an item in the export slot and the inserted stack does not match, do not insert
+//            if (!exportItems.isEmpty() && !areItemStackIdentical(exportItems, insertedStack)) {
+//                return insertedStack;
+//            }
 
             ItemStack remainingStack = insertedStack.copy();
 
@@ -639,6 +645,20 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 //            } else {
                 return remainingStack;
 //            }
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            NBTTagCompound compound = stack.getTagCompound();
+//            ItemStack outStack = getExportItems().getStackInSlot(0);
+//            boolean outStackMatch = true;
+//            if (!outStack.isEmpty()) {
+//                outStackMatch = areItemStackIdentical(stack, outStack);
+//            }
+            if (compound == null) return true;
+            return !(compound.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND) ||
+                    compound.hasKey("Fluid", NBT.TAG_COMPOUND)); // prevents inserting items with NBT to the Quantum
+            // Chest
         }
 
         public void writeToNBT(NBTTagCompound data) {
