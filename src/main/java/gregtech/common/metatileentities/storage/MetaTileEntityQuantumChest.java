@@ -18,6 +18,7 @@ import gregtech.api.metatileentity.IFastRenderMetaTileEntity;
 import gregtech.api.metatileentity.ITieredMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
+import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.mui.GTGuis;
 import gregtech.api.util.GTLog;
 import gregtech.api.util.GTTransferUtils;
@@ -227,35 +228,19 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
     @Override
     protected IItemHandlerModifiable createImportItemHandler() {
-        return this.internalInventory;
-//        return new GTItemStackHandler(this, 1) {
-//
-//            @NotNull
-//            @Override
-//            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-//                if (!isItemValid(slot, stack)) return stack;
-//                return GTTransferUtils.insertItem(internalInventory, stack, simulate);
-//            }
-//
-//            @Override
-//            public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-//                NBTTagCompound compound = stack.getTagCompound();
-//                ItemStack outStack = getExportItems().getStackInSlot(0);
-//                boolean outStackMatch = true;
-//                if (!outStack.isEmpty()) {
-//                    outStackMatch = areItemStackIdentical(stack, outStack);
-//                }
-//                if (compound == null) return true;
-//                return outStackMatch && !(compound.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND) ||
-//                        compound.hasKey("Fluid", NBT.TAG_COMPOUND)); // prevents inserting items with NBT to the Quantum
-//                                                                     // Chest
-//            }
-//        };
+        return new GTItemStackHandler(this, 1) {
+
+            @NotNull
+            @Override
+            public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+                return GTTransferUtils.insertItem(internalInventory, stack, simulate);
+            }
+        };
     }
 
     @Override
     protected IItemHandlerModifiable createExportItemHandler() {
-        return this.internalInventory;
+        return new GTItemStackHandler(this, 1);
     }
 
     @Override
@@ -281,10 +266,6 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     public void initFromItemStackData(NBTTagCompound itemStack) {
         super.initFromItemStackData(itemStack);
         this.internalInventory.initFromItemStackData(itemStack);
-
-        if (itemStack.getBoolean(IS_VOIDING)) {
-            setVoiding(true);
-        }
     }
 
     @Override
@@ -301,7 +282,11 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
     @Override
     public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
-        return GTGuis.createPanel(this, 176, 166);
+        return GTGuis.createPanel(this, 176, 166)
+                .padding(4)
+                .child(GTGuiTextures.DISPLAY.asWidget()
+                        .widthRel(1.0f)
+                        .height(100));
     }
 
 //    @Override
@@ -676,6 +661,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
                     this.itemsStoredInside = data.getLong(NBT_ITEMCOUNT);
                 }
             }
+            // todo handle export stack here as well
             if (data.hasKey(IS_VOIDING)) {
                 this.voiding = data.getBoolean(IS_VOIDING);
             }
@@ -688,7 +674,11 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
                     this.itemsStoredInside = itemStack.getLong(NBT_ITEMCOUNT);
                 }
             }
+            if (itemStack.getBoolean(IS_VOIDING)) {
+                setVoiding(true);
+            }
             if (itemStack.hasKey(NBT_PARTIALSTACK, NBT.TAG_COMPOUND)) {
+                // todo handle export slot stack here
 //                exportItems.setStackInSlot(0, new ItemStack(itemStack.getCompoundTag(NBT_PARTIALSTACK)));
             }
         }
