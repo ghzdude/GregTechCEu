@@ -75,8 +75,6 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     private static final String IS_VOIDING = "IsVoiding";
     private QuantumChestItemHandler internalInventory;
 
-
-    protected final long maxCapacity;
 //    protected IItemHandler outputItemInventory;
 //    private ItemHandlerList combinedInventory;
     protected ItemStack previousStack;
@@ -85,7 +83,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     public MetaTileEntityQuantumChest(ResourceLocation metaTileEntityId, int tier, long maxStoredItems) {
         super(metaTileEntityId);
         this.tier = tier;
-        this.maxCapacity = maxStoredItems;
+        this.internalInventory = new QuantumChestItemHandler(maxStoredItems);
     }
 
     @Override
@@ -95,7 +93,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
     @Override
     public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityQuantumChest(metaTileEntityId, tier, maxCapacity);
+        return new MetaTileEntityQuantumChest(metaTileEntityId, tier, internalInventory.getSlotLimit());
     }
 
     @Override
@@ -219,7 +217,6 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     @Override
     protected void initializeInventory() {
         super.initializeInventory();
-        this.internalInventory = new QuantumChestItemHandler(this.maxCapacity);
 //        this.itemInventory = new QuantumChestItemHandler();
 //        List<IItemHandler> temp = new ArrayList<>();
 //        temp.add(this.exportItems);
