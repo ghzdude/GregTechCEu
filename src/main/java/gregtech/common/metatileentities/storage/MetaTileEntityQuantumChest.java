@@ -290,7 +290,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     @Override
     public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
 
-        return GTGuis.createPanel(this, 176, 166)
+        return GTGuis.createPanel(this, 176, 186)
                 .padding(4)
                 .child(new Column()
                         .child(new QuantumSlot(this.internalInventory)
@@ -300,7 +300,8 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
                                 .topRel(0.5f))
                         .background(GTGuiTextures.DISPLAY)
                         .widthRel(1.0f)
-                        .height(100));
+                        .height(100))
+                .bindPlayerInventory();
     }
 
     private static class QuantumSlot extends Widget<QuantumSlot> implements Interactable {
@@ -375,6 +376,8 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
         @SuppressWarnings("UnstableApiUsage")
         public void init(String key, GuiSyncManager syncManager) {
             super.init(key, syncManager);
+            this.modularSlot.singletonSlotGroup(-100);
+            syncManager.registerSlotGroup(this.modularSlot.getSlotGroup());
             syncManager.getContainer().registerSlot(this.modularSlot);
         }
 
