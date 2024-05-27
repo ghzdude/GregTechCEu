@@ -8,11 +8,13 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.viewport.GuiContext;
 import com.cleanroommc.modularui.theme.WidgetTheme;
 import com.cleanroommc.modularui.utils.Alignment;
+import com.cleanroommc.modularui.utils.Color;
 import com.cleanroommc.modularui.utils.MouseData;
 import com.cleanroommc.modularui.value.sync.GuiSyncManager;
 
 import com.cleanroommc.modularui.value.sync.SyncHandler;
 import com.cleanroommc.modularui.widget.Widget;
+import com.cleanroommc.modularui.widgets.SlotGroupWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
 
 import com.cleanroommc.modularui.widgets.slot.ModularSlot;
@@ -39,6 +41,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -276,8 +279,8 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     public void initFromItemStackData(NBTTagCompound itemStack) {
         super.initFromItemStackData(itemStack);
         if (itemStack.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND)) {
-            this.internalInventory.virtualItemStack = new ItemStack(itemStack.getCompoundTag(NBT_ITEMSTACK));
-            if (!this.internalInventory.virtualItemStack.isEmpty()) {
+            this.internalInventory.setVirtualStack(new ItemStack(itemStack.getCompoundTag(NBT_ITEMSTACK)));
+            if (!this.internalInventory.getVirtualStack().isEmpty()) {
                 this.internalInventory.itemsStoredInside = itemStack.getLong(NBT_ITEMCOUNT);
             }
         }
@@ -286,6 +289,16 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
         }
         if (itemStack.hasKey(NBT_PARTIALSTACK, NBT.TAG_COMPOUND)) {
             // todo handle export slot stack here
+            var export = new ItemStack(itemStack.getCompoundTag(NBT_PARTIALSTACK));
+            export = this.internalInventory.insertItem(0, export, false);
+            if (!export.isEmpty()) {
+                // todo drop remaining export items
+                var entityItem = new EntityItem(getWorld());
+                var pos = getPos();
+                entityItem.setPosition(pos.getX(), pos.getY(), pos.getZ());
+                entityItem.setItem(export);
+                getWorld().spawnEntity(entityItem);
+            }
             // exportItems.setStackInSlot(0, new ItemStack(itemStack.getCompoundTag(NBT_PARTIALSTACK)));
         }
     }
@@ -315,27 +328,30 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
     @Override
     public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
 
-        return GTGuis.createPanel(this, 176, 186)
+        return GTGuis.createPanel(this, 176, 192)
                 .padding(4)
                 .child(new Column()
                         .padding(6)
+                        .child(IKey.lang(getMetaFullName()).asWidget().marginBottom(4))
+                        .child(new QuantumSlot(this.internalInventory)
+                                .size(36)
+                                .left(4))
                         .child(IKey.dynamic(() -> IKey.lang(internalInventory.virtualItemStack.getDisplayName()).get())
-                                .alignment(Alignment.Center)
+                                .color(Color.WHITE.main)
+                                .alignment(Alignment.CenterLeft)
                                 .asWidget()
+                                .setEnabledIf(textWidget -> !internalInventory.virtualItemStack.isEmpty())
                                 .widthRel(0.9f))
                         .child(IKey.dynamic(() -> String.valueOf(internalInventory.itemsStoredInside))
-                                .alignment(Alignment.Center)
+                                .color(Color.WHITE.main)
+                                .alignment(Alignment.CenterLeft)
                                 .asWidget()
+                                .setEnabledIf(textWidget -> internalInventory.itemsStoredInside > 0)
                                 .widthRel(0.9f))
-                        .child(new QuantumSlot(this.internalInventory)
-                                .size(18)
-                                .background(GTGuiTextures.SLOT)
-                                .leftRel(0.5f)
-                                .topRel(0.5f))
                         .background(GTGuiTextures.DISPLAY)
                         .widthRel(1.0f)
                         .height(100))
-                .bindPlayerInventory();
+                .child(SlotGroupWidget.playerInventory().left(7));
     }
 
     private static class QuantumSlot extends Widget<QuantumSlot> implements Interactable {
@@ -360,6 +376,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
             RenderHelper.enableGUIStandardItemLighting();
             GlStateManager.pushMatrix();
+            GlStateManager.scale(2, 2, 1);
             RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
             renderItem.renderItemAndEffectIntoGUI(virtualItemStack, 1, 1);
             renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, virtualItemStack, 1, 1, null);
@@ -392,7 +409,7 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
         @Override
         public boolean isItemValid(@NotNull ItemStack stack) {
-            return getItemHandler().isItemValid(this.slotNumber, stack);
+            return getItemHandler().isItemValid(getSlotIndex(), stack);
         }
 
         @Override
@@ -767,12 +784,12 @@ public class MetaTileEntityQuantumChest extends MetaTileEntity
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            NBTTagCompound compound = stack.getTagCompound();
             var virtualItemStack = getVirtualStack();
+            if (!virtualItemStack.isEmpty() && !areItemStackIdentical(virtualItemStack, stack))
+                return false;
 
+            NBTTagCompound compound = stack.getTagCompound();
             if (compound == null) return true;
-            if (!virtualItemStack.isEmpty() && areItemStackIdentical(getVirtualStack(), stack))
-                return true;
 
             return !(compound.hasKey(NBT_ITEMSTACK, NBT.TAG_COMPOUND) ||
                     compound.hasKey("Fluid", NBT.TAG_COMPOUND)); // prevents inserting items with NBT to the Quantum
