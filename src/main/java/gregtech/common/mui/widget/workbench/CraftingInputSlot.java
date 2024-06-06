@@ -106,11 +106,6 @@ public class CraftingInputSlot extends Widget<CraftingOutputSlot> implements Int
         return syncHandler.getStack();
     }
 
-    @Override
-    public CraftingOutputSlot onUpdateListener(Consumer<CraftingOutputSlot> listener) {
-        return super.onUpdateListener(listener);
-    }
-
     @SuppressWarnings("OverrideOnly")
     protected static class InputSyncHandler extends SyncHandler {
 
