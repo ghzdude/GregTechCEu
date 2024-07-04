@@ -64,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -435,6 +436,18 @@ public class GTUtility {
                 return backedList.size();
             }
         };
+    }
+
+    public static void addHandlerToCollection(Collection<ItemStack> collection, IItemHandler handler) {
+        for (int i = 0; i < handler.getSlots(); i++) {
+            collection.add(handler.getStackInSlot(i));
+        }
+    }
+
+    public static void addHandlerToCollection(Collection<FluidStack> collection, IMultipleTankHandler handler) {
+        for (int i = 0; i < handler.getTanks(); i++) {
+            collection.add(handler.getTankAt(i).getFluid());
+        }
     }
 
     public static NBTTagCompound getOrCreateNbtCompound(ItemStack stack) {
