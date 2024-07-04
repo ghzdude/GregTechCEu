@@ -76,7 +76,7 @@ public abstract class MetaTileEntityHPCAComponent extends MetaTileEntityMultiblo
 
     @Override
     public @NotNull List<? extends IHPCAComponentHatch> registerAbilities(
-            @NotNull MultiblockAbility<? extends IHPCAComponentHatch> multiblockAbility) {
+                                                                          @NotNull MultiblockAbility<? extends IHPCAComponentHatch> multiblockAbility) {
         return Collections.singletonList(this);
     }
 
