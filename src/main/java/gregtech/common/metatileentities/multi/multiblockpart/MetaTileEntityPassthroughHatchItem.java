@@ -159,7 +159,8 @@ public class MetaTileEntityPassthroughHatchItem extends MetaTileEntityMultiblock
     }
 
     @Override
-    public @NotNull List<?> registerAbilities(@NotNull MultiblockAbility<Object> multiblockAbility) {
+    public @NotNull List<? extends IPassthroughHatch> registerAbilities(
+            @NotNull MultiblockAbility<? extends IPassthroughHatch> multiblockAbility) {
         return Collections.singletonList(this);
     }
 
