@@ -1,19 +1,33 @@
 package gregtech.common.metatileentities.multi;
 
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.drawable.ItemDrawable;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.utils.Color;
+import com.cleanroommc.modularui.value.IntValue;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+
+import com.cleanroommc.modularui.value.sync.IntSyncValue;
+import com.cleanroommc.modularui.widget.Widget;
+import com.cleanroommc.modularui.widgets.ButtonWidget;
+
+import com.cleanroommc.modularui.widgets.ProgressWidget;
+import com.cleanroommc.modularui.widgets.layout.Row;
+
+import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
+
 import gregtech.api.capability.impl.BoilerRecipeLogic;
 import gregtech.api.capability.impl.CommonFluidFilters;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
-import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.Widget;
-import gregtech.api.gui.Widget.ClickData;
-import gregtech.api.gui.resources.TextureArea;
-import gregtech.api.gui.widgets.ClickButtonWidget;
-import gregtech.api.gui.widgets.WidgetGroup;
 import gregtech.api.metatileentity.MTETrait;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
+import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
+import gregtech.api.mui.GTGuiTextures;
+import gregtech.api.mui.GTGuis;
+import gregtech.api.mui.sync.SimplePanelSH;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.pattern.PatternMatchContext;
@@ -29,7 +43,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
@@ -47,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase implements IProgressBarMultiblock {
+public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase implements ProgressBarMultiblock {
 
     public final BoilerType boilerType;
     protected BoilerRecipeLogic recipeLogic;
@@ -151,8 +164,7 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
     protected void addWarningText(List<ITextComponent> textList) {
         super.addWarningText(textList);
         if (isStructureFormed()) {
-            int[] waterAmount = getWaterAmount();
-            if (waterAmount[0] == 0) {
+            if (getWaterFilled() == 0) {
                 textList.add(TextComponentUtil.translationWithColor(TextFormatting.YELLOW,
                         "gregtech.multiblock.large_boiler.no_water"));
                 textList.add(TextComponentUtil.translationWithColor(TextFormatting.GRAY,
@@ -162,23 +174,57 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
     }
 
     @Override
-    protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
-        WidgetGroup group = new WidgetGroup(x, y, width, height);
-        group.addWidget(new ClickButtonWidget(0, 0, 9, 18, "", this::decrementThrottle)
-                .setButtonTexture(GuiTextures.BUTTON_THROTTLE_MINUS)
-                .setTooltipText("gregtech.multiblock.large_boiler.throttle_decrement"));
-        group.addWidget(new ClickButtonWidget(9, 0, 9, 18, "", this::incrementThrottle)
-                .setButtonTexture(GuiTextures.BUTTON_THROTTLE_PLUS)
-                .setTooltipText("gregtech.multiblock.large_boiler.throttle_increment"));
-        return group;
+    public void createExtraButtons(@NotNull ModularPanel parentPanel, @NotNull GuiSyncManager guiSyncManager,
+                                   @NotNull List<Widget<?>> list) {
+        IntSyncValue syncValue = new IntSyncValue(this::getThrottlePercentage, this::setThrottlePercentage);
+        syncValue.updateCacheFromSource(true);
+        guiSyncManager.syncValue("boiler_throttle", syncValue);
+
+        var popupPanel = GTGuis.createPopupPanel("boiler_throttle", 116, 53)
+                .child(new Row()
+                        .pos(4, 4)
+                        .height(16).coverChildrenWidth()
+                        .child(new ItemDrawable(getStackForm())
+                                .asWidget()
+                                .size(16)
+                                .marginRight(4)
+                        )
+                        .child(IKey.lang("gregtech.multiblock.large_boiler.throttle.title")
+                                .asWidget()
+                                .heightRel(1.0f)
+                        )
+                )
+                .child(new Row()
+                        //TODO add inc/dec buttons
+                        .child(new TextFieldWidget()
+                                .size(40, 20)
+                                .left(38)
+                                .top(20)
+                                .setTextColor(Color.WHITE.darker(1)) // TODO proper color
+                                .setNumbers(0, 100)
+                                .value(new IntValue.Dynamic(syncValue::getIntValue, syncValue::setIntValue)) //TODO show % sign
+                                .background(GTGuiTextures.DISPLAY)
+                        )
+                );
+
+        var panelSH = new SimplePanelSH(parentPanel, (m, sm) -> popupPanel);
+
+        guiSyncManager.syncValue("throttle_panel", panelSH);
+
+        list.add(new ButtonWidget<>()
+                        .width(18)
+                        .overlay(GTGuiTextures.BUTTON_THROTTLE_MINUS)
+                        .background(GTGuiTextures.BUTTON) //TODO make this work
+                        .onMousePressed(panelSH::openClose)
+        );
     }
 
-    private void incrementThrottle(ClickData clickData) {
-        this.throttlePercentage = MathHelper.clamp(throttlePercentage + 5, 25, 100);
+    private void setThrottlePercentage(int amount) {
+        this.throttlePercentage = amount;
     }
 
-    private void decrementThrottle(ClickData clickData) {
-        this.throttlePercentage = MathHelper.clamp(throttlePercentage - 5, 25, 100);
+    private int getThrottlePercentage() {
+        return this.throttlePercentage;
     }
 
     @Override
@@ -187,7 +233,7 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
     }
 
     @Override
-    protected BlockPattern createStructurePattern() {
+    protected @NotNull BlockPattern createStructurePattern() {
         return FactoryBlockPattern.start()
                 .aisle("XXX", "CCC", "CCC", "CCC")
                 .aisle("XXX", "CPC", "CPC", "CCC")
@@ -311,61 +357,69 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
     }
 
     @Override
-    protected boolean shouldShowVoidingModeButton() {
+    public boolean shouldShowVoidingModeButton() {
         return false;
     }
 
     @Override
-    public double getFillPercentage(int index) {
-        if (!isStructureFormed()) return 0;
-        int[] waterAmount = getWaterAmount();
-        if (waterAmount[1] == 0) return 0; // no water capacity
-        return (1.0 * waterAmount[0]) / waterAmount[1];
+    public int getProgressBarCount() {
+        return 1;
     }
 
     @Override
-    public TextureArea getProgressBarTexture(int index) {
-        return GuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION;
-    }
+    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index) {
+        IntSyncValue waterFilledValue = new IntSyncValue(this::getWaterFilled, null);
+        IntSyncValue waterCapacityValue = new IntSyncValue(this::getWaterCapacity, null);
+        guiSyncManager.syncValue("water_filled", waterFilledValue);
+        guiSyncManager.syncValue("water_capacity", waterCapacityValue);
 
-    @Override
-    public void addBarHoverText(List<ITextComponent> hoverList, int index) {
-        if (!isStructureFormed()) {
-            hoverList.add(TextComponentUtil.translationWithColor(TextFormatting.GRAY,
-                    "gregtech.multiblock.invalid_structure"));
-        } else {
-            int[] waterAmount = getWaterAmount();
-            if (waterAmount[0] == 0) {
-                hoverList.add(TextComponentUtil.translationWithColor(TextFormatting.YELLOW,
-                        "gregtech.multiblock.large_boiler.no_water"));
-            } else {
-                ITextComponent waterInfo = TextComponentUtil.translationWithColor(
-                        TextFormatting.BLUE,
-                        "%s / %s L",
-                        waterAmount[0], waterAmount[1]);
-                hoverList.add(TextComponentUtil.translationWithColor(
-                        TextFormatting.GRAY,
-                        "gregtech.multiblock.large_boiler.water_bar_hover",
-                        waterInfo));
-            }
-        }
+        return new ProgressWidget()
+                .progress(() -> waterCapacityValue.getIntValue() == 0 ? 0 : waterFilledValue.getIntValue() * 1.0 / waterCapacityValue.getIntValue())
+                .texture(GTGuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION, MultiblockUIFactory.Bars.FULL_WIDTH)
+                .tooltipBuilder(t -> {
+                    t.setAutoUpdate(true);
+                    if (isStructureFormed()) {
+                        if (waterFilledValue.getIntValue() == 0) {
+                            t.addLine(IKey.lang("gregtech.multiblock.large_boiler.no_water"));
+                        } else {
+                            t.addLine(IKey.lang("gregtech.multiblock.large_boiler.water_bar_hover",
+                                    waterFilledValue.getIntValue(), waterCapacityValue.getIntValue()));
+                        }
+                    } else {
+                        t.addLine(IKey.lang("gregtech.multiblock.invalid_structure"));
+                    }
+                });
     }
 
     /**
-     * Returns an int[] of {AmountFilled, Capacity} where capacity is the sum of hatches with some water in them.
-     * If there is no water in the boiler (or the structure isn't formed, both of these values will be zero.
+     * @return the total amount of water filling the inputs
      */
-    private int[] getWaterAmount() {
-        if (!isStructureFormed()) return new int[] { 0, 0 };
+    private int getWaterFilled() {
+        if (!isStructureFormed()) return 0;
         List<IFluidTank> tanks = getAbilities(MultiblockAbility.IMPORT_FLUIDS);
-        int filled = 0, capacity = 0;
+        int filled = 0;
         for (IFluidTank tank : tanks) {
             if (tank == null || tank.getFluid() == null) continue;
             if (CommonFluidFilters.BOILER_FLUID.test(tank.getFluid())) {
                 filled += tank.getFluidAmount();
+            }
+        }
+        return filled;
+    }
+
+    /**
+     * @return the total capacity for water-containing inputs
+     */
+    private int getWaterCapacity() {
+        if (!isStructureFormed()) return 0;
+        List<IFluidTank> tanks = getAbilities(MultiblockAbility.IMPORT_FLUIDS);
+        int capacity = 0;
+        for (IFluidTank tank : tanks) {
+            if (tank == null || tank.getFluid() == null) continue;
+            if (CommonFluidFilters.BOILER_FLUID.test(tank.getFluid())) {
                 capacity += tank.getCapacity();
             }
         }
-        return new int[] { filled, capacity };
+        return capacity;
     }
 }

@@ -412,7 +412,7 @@ public class MetaTileEntityFusionReactor extends RecipeMapMultiblockController
         // Voiding Mode Button
         builder.widget(new ImageCycleButtonWidget(173, 189, 18, 18, GuiTextures.BUTTON_VOID_MULTIBLOCK,
                 4, this::getVoidingMode, this::setVoidingMode)
-                        .setTooltipHoverString(MultiblockWithDisplayBase::getVoidingModeTooltip));
+                        .setTooltipHoverString(this::getVoidingModeTooltip));
 
         // Distinct Buses Unavailable Image
         builder.widget(new ImageWidget(173, 171, 18, 18, GuiTextures.BUTTON_NO_DISTINCT_BUSES)

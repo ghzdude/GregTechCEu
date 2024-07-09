@@ -13,6 +13,8 @@ import gregtech.api.gui.widgets.ImageCycleButtonWidget;
 import gregtech.api.gui.widgets.ImageWidget;
 import gregtech.api.gui.widgets.IndicatorImageWidget;
 import gregtech.api.gui.widgets.ProgressWidget;
+import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
+import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.unification.OreDictUnifier;
@@ -33,6 +35,10 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -458,7 +464,7 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
         if (shouldShowVoidingModeButton()) {
             builder.widget(new ImageCycleButtonWidget(173, 161, 18, 18, GuiTextures.BUTTON_VOID_MULTIBLOCK,
                     4, this::getVoidingMode, this::setVoidingMode)
-                            .setTooltipHoverString(MultiblockWithDisplayBase::getVoidingModeTooltip));
+                            .setTooltipHoverString(this::getVoidingModeTooltip));
         } else {
             builder.widget(new ImageWidget(173, 161, 18, 18, GuiTextures.BUTTON_VOID_NONE)
                     .setTooltip("gregtech.gui.multiblock_voiding_not_supported"));
@@ -483,12 +489,29 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
     }
 
     /**
+     * Add a custom third button to the Multiblock UI. By default, this is a placeholder stating that there is no
+     * additional functionality for this Multiblock.
+     * <br>
+     * Size will be 18x18.
+     *
+     * @param parentPanel    the parent panel containing the button
+     * @param guiSyncManager the sync manager for synchronizing widgets
+     * @param list           the list of widgets to append to
+     */
+    public void createExtraButtons(@NotNull ModularPanel parentPanel,
+                                   @NotNull GuiSyncManager guiSyncManager,
+                                   @NotNull List<com.cleanroommc.modularui.widget.Widget<?>> list) {}
+
+    /**
      * Add a custom third button to the Multiblock UI. By default, this is a placeholder
      * stating that there is no additional functionality for this Multiblock.
      * <br>
      * <br>
      * Parameters should be passed directly to the created widget. Size will be 18x18.
+     * 
+     * @deprecated {@link #createExtraButtons(ModularPanel, GuiSyncManager, List)}
      */
+    @Deprecated
     @SuppressWarnings("SameParameterValue")
     @NotNull
     protected Widget getFlexButton(int x, int y, int width, int height) {
@@ -526,15 +549,15 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
                 .addMufflerObstructedLine(hasMufflerMechanics() && !isMufflerFaceFree());
     }
 
-    protected boolean shouldShowVoidingModeButton() {
+    public boolean shouldShowVoidingModeButton() {
         return true;
     }
 
-    protected int getVoidingMode() {
+    public final int getVoidingMode() {
         return voidingMode.ordinal();
     }
 
-    protected void setVoidingMode(int mode) {
+    public final void setVoidingMode(int mode) {
         this.voidingMode = VoidingMode.VALUES[mode];
 
         this.voidingFluids = mode >= 2;
@@ -551,8 +574,17 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
         markDirty();
     }
 
-    protected static String getVoidingModeTooltip(int mode) {
+    public @NotNull String getVoidingModeTooltip(int mode) {
         return VoidingMode.VALUES[mode].getName();
+    }
+
+    @Override
+    public boolean usesMui2() {
+        return true;
+    }
+    @Override
+    public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
+        return new MultiblockUIFactory<>(this, guiData, guiSyncManager).buildUI();
     }
 
     @Override
