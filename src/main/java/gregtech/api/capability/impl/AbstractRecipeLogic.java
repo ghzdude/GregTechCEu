@@ -408,7 +408,7 @@ public abstract class AbstractRecipeLogic extends MTETrait implements IWorkable,
     protected boolean checkPreviousRecipe() {
         if (this.previousRecipe == null) return false;
         if (this.previousRecipe.getEUt() > this.getMaxVoltage()) return false;
-        return this.previousRecipe.matches(false, getInputInventory(), getInputTank());
+        return recipeMatch(this.previousRecipe, getInputInventory(), getInputTank());
     }
 
     /**
@@ -739,6 +739,10 @@ public abstract class AbstractRecipeLogic extends MTETrait implements IWorkable,
             return false;
         }
         return true;
+    }
+
+    protected boolean recipeMatch(Recipe recipe, IItemHandlerModifiable inputItems, IMultipleTankHandler inputFluids) {
+        return recipe.matches(true, inputItems, inputFluids);
     }
 
     protected List<ItemStack> gatherItems(IItemHandlerModifiable inputInventory, IMultipleTankHandler inputFluids) {
