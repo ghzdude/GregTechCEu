@@ -401,61 +401,43 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
                     .size(190, 109)
                     .background(GTGuiTextures.DISPLAY));
 
-            var col = new Column();
-            switch (progressMulti.getNumProgressBars()) {
-                case 1 -> col.child(new Rectangle()
-                        .setColor(Color.BLACK.main)
-                        .asWidget()
-                        .size(190, 7));
+            int bars = progressMulti.getNumProgressBars();
+            int barSize;
+            if (bars == 4)
+                barSize = 94;
+            else
+                barSize = (190 / bars) - 1;
 
-                case 2 -> col.child(new Row()
-                        .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
-                        .child(new Rectangle()
-                                .setColor(Color.BLACK.main)
-                                .asWidget()
-                                .size(94, 7))
-                        .child(new Rectangle()
-                                .setColor(Color.BLACK.main)
-                                .asWidget()
-                                .size(94, 7)));
+            var col = new Column()
+                    .size(190, 15)
+                    .child(new Row()
+                            .marginBottom(1)
+                            .size(190, 7)
+                            .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                            .child(new Rectangle()
+                                    .setColor(Color.BLACK.main)
+                                    .asWidget()
+                                    .size(barSize, 7))
+                            .childIf(bars > 1, new Rectangle()
+                                    .setColor(Color.BLACK.main)
+                                    .asWidget()
+                                    .size(barSize, 7))
+                            .childIf(bars == 3, new Rectangle()
+                                    .setColor(Color.BLACK.main)
+                                    .asWidget()
+                                    .size(barSize, 7)))
+                    .childIf(bars == 4, new Row()
+                            .size(190, 7)
+                            .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                            .child(new Rectangle()
+                                    .setColor(Color.BLACK.main)
+                                    .asWidget()
+                                    .size(barSize, 7))
+                            .child(new Rectangle()
+                                    .setColor(Color.BLACK.main)
+                                    .asWidget()
+                                    .size(barSize, 7)));
 
-                case 3 -> col.child(new Row()
-                        .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
-                        .child(new Rectangle()
-                                .setColor(Color.BLACK.main)
-                                .asWidget()
-                                .size(62, 7))
-                        .child(new Rectangle()
-                                .setColor(Color.BLACK.main)
-                                .asWidget()
-                                .size(62, 7))
-                        .child(new Rectangle()
-                                .setColor(Color.BLACK.main)
-                                .asWidget()
-                                .size(62, 7)));
-
-                case 4 -> col.child(new Row()
-                                .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
-                                .child(new Rectangle()
-                                        .setColor(Color.BLACK.main)
-                                        .asWidget()
-                                        .size(94, 7))
-                                .child(new Rectangle()
-                                        .setColor(Color.BLACK.main)
-                                        .asWidget()
-                                        .size(94, 7)))
-                        .child(new Row()
-                                .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
-                                .child(new Rectangle()
-                                        .setColor(Color.BLACK.main)
-                                        .asWidget()
-                                        .size(94, 7))
-                                .child(new Rectangle()
-                                        .setColor(Color.BLACK.main)
-                                        .asWidget()
-                                        .size(94, 7)));
-                default -> {}
-            }
             panel.child(col.pos(4, 115)
                     .size(190, 14));
         }
