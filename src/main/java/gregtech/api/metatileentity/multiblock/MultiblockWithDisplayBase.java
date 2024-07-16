@@ -402,11 +402,7 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
                     .background(GTGuiTextures.DISPLAY));
 
             int bars = progressMulti.getNumProgressBars();
-            int barSize;
-            if (bars == 4)
-                barSize = 94;
-            else
-                barSize = (190 / bars) - 1;
+            int barSize = bars == 4 ? 94 : (190 / bars) - 1;
 
             var col = new Column()
                     .size(190, 15)
