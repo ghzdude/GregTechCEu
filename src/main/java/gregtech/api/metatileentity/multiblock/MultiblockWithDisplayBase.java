@@ -1,5 +1,17 @@
 package gregtech.api.metatileentity.multiblock;
 
+import com.cleanroommc.modularui.api.widget.IWidget;
+import com.cleanroommc.modularui.drawable.Rectangle;
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.utils.Alignment;
+import com.cleanroommc.modularui.utils.Color;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+
+import com.cleanroommc.modularui.widgets.layout.Column;
+
+import com.cleanroommc.modularui.widgets.layout.Row;
+
 import gregtech.api.GTValues;
 import gregtech.api.block.VariantActiveBlock;
 import gregtech.api.capability.*;
@@ -13,6 +25,8 @@ import gregtech.api.gui.widgets.ImageCycleButtonWidget;
 import gregtech.api.gui.widgets.ImageWidget;
 import gregtech.api.gui.widgets.IndicatorImageWidget;
 import gregtech.api.gui.widgets.ProgressWidget;
+import gregtech.api.mui.GTGuiTextures;
+import gregtech.api.mui.GTGuis;
 import gregtech.api.pattern.PatternMatchContext;
 import gregtech.api.pattern.TraceabilityPredicate;
 import gregtech.api.unification.OreDictUnifier;
@@ -376,6 +390,78 @@ public abstract class MultiblockWithDisplayBase extends MultiblockControllerBase
      * Data is the data specified in the component
      */
     protected void handleDisplayClick(String componentData, ClickData clickData) {}
+
+    @Override
+    public ModularPanel buildUI(PosGuiData guiData, GuiSyncManager guiSyncManager) {
+        var panel = GTGuis.createPanel(this, 198, 208);
+
+        if (this instanceof IProgressBarMultiblock progressMulti && progressMulti.showProgressBar()) {
+            panel.child(new Column()
+                    .top(4).left(4)
+                    .size(190, 109)
+                    .background(GTGuiTextures.DISPLAY));
+
+            var col = new Column();
+            switch (progressMulti.getNumProgressBars()) {
+                case 1 -> col.child(new Rectangle()
+                        .setColor(Color.BLACK.main)
+                        .asWidget()
+                        .size(190, 7));
+
+                case 2 -> col.child(new Row()
+                        .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                        .child(new Rectangle()
+                                .setColor(Color.BLACK.main)
+                                .asWidget()
+                                .size(94, 7))
+                        .child(new Rectangle()
+                                .setColor(Color.BLACK.main)
+                                .asWidget()
+                                .size(94, 7)));
+
+                case 3 -> col.child(new Row()
+                        .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                        .child(new Rectangle()
+                                .setColor(Color.BLACK.main)
+                                .asWidget()
+                                .size(62, 7))
+                        .child(new Rectangle()
+                                .setColor(Color.BLACK.main)
+                                .asWidget()
+                                .size(62, 7))
+                        .child(new Rectangle()
+                                .setColor(Color.BLACK.main)
+                                .asWidget()
+                                .size(62, 7)));
+
+                case 4 -> col.child(new Row()
+                                .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                                .child(new Rectangle()
+                                        .setColor(Color.BLACK.main)
+                                        .asWidget()
+                                        .size(94, 7))
+                                .child(new Rectangle()
+                                        .setColor(Color.BLACK.main)
+                                        .asWidget()
+                                        .size(94, 7)))
+                        .child(new Row()
+                                .mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN)
+                                .child(new Rectangle()
+                                        .setColor(Color.BLACK.main)
+                                        .asWidget()
+                                        .size(94, 7))
+                                .child(new Rectangle()
+                                        .setColor(Color.BLACK.main)
+                                        .asWidget()
+                                        .size(94, 7)));
+                default -> {}
+            }
+            panel.child(col.pos(4, 115)
+                    .size(190, 14));
+        }
+
+        return panel;
+    }
 
     protected ModularUI.Builder createUITemplate(EntityPlayer entityPlayer) {
         ModularUI.Builder builder = ModularUI.builder(GuiTextures.BACKGROUND, 198, 208);

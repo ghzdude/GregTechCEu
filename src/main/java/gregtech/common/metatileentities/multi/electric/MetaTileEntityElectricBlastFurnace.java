@@ -66,6 +66,8 @@ public class MetaTileEntityElectricBlastFurnace extends RecipeMapMultiblockContr
         return new MetaTileEntityElectricBlastFurnace(metaTileEntityId);
     }
 
+
+
     @Override
     protected void addDisplayText(List<ITextComponent> textList) {
         MultiblockDisplayText.builder(textList, isStructureFormed())

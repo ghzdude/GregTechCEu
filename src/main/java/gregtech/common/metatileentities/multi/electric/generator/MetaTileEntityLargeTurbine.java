@@ -114,6 +114,11 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
     }
 
     @Override
+    public boolean usesMui2() {
+        return true;
+    }
+
+    @Override
     protected void addDisplayText(List<ITextComponent> textList) {
         MultiblockFuelRecipeLogic recipeLogic = (MultiblockFuelRecipeLogic) recipeMapWorkable;
 
