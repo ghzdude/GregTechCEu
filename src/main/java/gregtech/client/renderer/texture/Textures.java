@@ -464,7 +464,8 @@ public class Textures {
     public static final SimpleOverlayRenderer HPCA_EMPTY_OVERLAY = new SimpleOverlayRenderer(
             "overlay/machine/hpca/empty");
     public static final SimpleOverlayRenderer HPCA_HEAT_SINK_OVERLAY = new SimpleOverlayRenderer(
-            "overlay/machine/hpca/heat_sink");public static final SimpleOverlayRenderer ALARM_OVERLAY = new SimpleOverlayRenderer(
+            "overlay/machine/hpca/heat_sink");
+    public static final SimpleOverlayRenderer ALARM_OVERLAY = new SimpleOverlayRenderer(
             "overlay/machine/overlay_alarm");
     public static final SimpleOverlayRenderer ALARM_OVERLAY_ACTIVE = new SimpleOverlayRenderer(
             "overlay/machine/overlay_alarm_active");

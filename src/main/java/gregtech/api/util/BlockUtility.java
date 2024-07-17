@@ -10,11 +10,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMaps;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
-import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -88,14 +88,6 @@ public class BlockUtility {
         public NonNullList<ItemStack> captureDrops(boolean start) {
             return super.captureDrops(start);
         }
-    }
-
-    public static void startCaptureDrops() {
-        WRAPPER.captureDrops(true);
-    }
-
-    public static NonNullList<ItemStack> stopCaptureDrops() {
-        return WRAPPER.captureDrops(false);
     }
 
     /**

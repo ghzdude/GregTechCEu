@@ -64,7 +64,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-import codechicken.lib.raytracer.CuboidRayTraceResult;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
@@ -84,7 +83,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                                       IProgressBarMultiblock {
 
     @NotNull
-    public final LargeMinerType type;
+    public final LargeMinerTypes type;
     public final int tier;
     public final int drillingFluidConsumePerTick;
 
@@ -103,7 +102,7 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     private boolean inventoryFull;
 
     public MetaTileEntityLargeMiner(ResourceLocation metaTileEntityId, int tier, int speed, int maxChunkDiameter,
-                                    int fortune, int drillingFluidConsumePerTick, @NotNull ILargeMinerType type) {
+                                    int drillingFluidConsumePerTick, @NotNull LargeMinerTypes type) {
         super(metaTileEntityId);
         this.type = Objects.requireNonNull(type, "type == null");
         this.tier = tier;
@@ -620,18 +619,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
         return this.type.getFrontOverlay();
     }
 
-    @Override
-    protected ModularUI.Builder createUITemplate(EntityPlayer entityPlayer) {
-        return super.createUITemplate(entityPlayer)
-                .widget(new AdvancedTextWidget(63, 31 + 10, textList -> {
-                    if (this.isStructureFormed()) {
-                        this.minerLogic.addLastMinedBlock(textList);
-                    }
-                }, 0xFFFFFF)
-                        .setMaxWidthLimit(68 - 10)
-                        .setClickHandler(this::handleDisplayClick));
-    }
-
     // used for UI
     private void setCurrentMode(int mode) {
         switch (mode) {
@@ -652,18 +639,6 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
                 minerLogic.setSilkTouchMode(true);
             }
         }
-    }
-
-    @Override
-    protected @NotNull Widget getFlexButton(int x, int y, int width, int height) {
-        return new ImageCycleButtonWidget(x, y, width, height, GuiTextures.BUTTON_MINER_MODES, 4, this::getCurrentMode,
-                this::setCurrentMode)
-                        .setTooltipHoverString(mode -> switch (mode) {
-                        case 0 -> "gregtech.multiblock.miner.neither_mode";
-                        case 1 -> "gregtech.multiblock.miner.chunk_mode";
-                        case 2 -> "gregtech.multiblock.miner.silk_touch_mode";
-                        default -> "gregtech.multiblock.miner.both_modes";
-                        });
     }
 
     @Override
@@ -733,68 +708,5 @@ public class MetaTileEntityLargeMiner extends MultiblockWithDisplayBase
     @Override
     public boolean allowsExtendedFacing() {
         return false;
-    }
-
-    public interface ILargeMinerType {
-
-        @Nonnull
-        TraceabilityPredicate getCasing();
-
-        @Nonnull
-        TraceabilityPredicate getFrame();
-
-        @SideOnly(Side.CLIENT)
-        @Nonnull
-        ICubeRenderer getFrontOverlay();
-
-        @SideOnly(Side.CLIENT)
-        @Nonnull
-        ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart);
-    }
-
-    public enum LargeMinerType implements ILargeMinerType {
-        STEEL,
-        TITANIUM,
-        TUNGSTEN_STEEL;
-
-        @Nonnull
-        public TraceabilityPredicate getCasing() {
-            return states(switch (this) {
-                case STEEL -> MetaBlocks.METAL_CASING.getState(MetalCasingType.STEEL_SOLID);
-                case TITANIUM -> MetaBlocks.METAL_CASING.getState(MetalCasingType.TITANIUM_STABLE);
-                case TUNGSTEN_STEEL -> MetaBlocks.METAL_CASING.getState(MetalCasingType.TUNGSTENSTEEL_ROBUST);
-            });
-        }
-
-        @Nonnull
-        public TraceabilityPredicate getFrame() {
-            return frames(switch (this) {
-                case STEEL -> Materials.Steel;
-                case TITANIUM -> Materials.Titanium;
-                case TUNGSTEN_STEEL -> Materials.TungstenSteel;
-            });
-        }
-
-        @Nonnull
-        @Override
-        @SideOnly(Side.CLIENT)
-        public ICubeRenderer getBaseTexture(@Nullable IMultiblockPart sourcePart) {
-            return switch (this) {
-                case STEEL -> Textures.SOLID_STEEL_CASING;
-                case TITANIUM -> Textures.STABLE_TITANIUM_CASING;
-                case TUNGSTEN_STEEL -> Textures.ROBUST_TUNGSTENSTEEL_CASING;
-            };
-        }
-
-        @Nonnull
-        @Override
-        @SideOnly(Side.CLIENT)
-        public ICubeRenderer getFrontOverlay() {
-            return switch (this) {
-                case STEEL -> Textures.LARGE_MINER_OVERLAY_ADVANCED;
-                case TITANIUM -> Textures.LARGE_MINER_OVERLAY_ADVANCED_2;
-                case TUNGSTEN_STEEL -> Textures.LARGE_MINER_OVERLAY_BASIC;
-            };
-        }
     }
 }

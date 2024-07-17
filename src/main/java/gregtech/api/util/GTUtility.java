@@ -20,7 +20,6 @@ import gregtech.api.metatileentity.registry.MTERegistry;
 import gregtech.api.recipes.RecipeMap;
 import gregtech.api.unification.OreDictUnifier;
 import gregtech.api.unification.ore.OrePrefix;
-
 import gregtech.core.advancement.AdvancementTriggers;
 
 import net.minecraft.block.Block;
