@@ -41,7 +41,6 @@ import codechicken.lib.vec.Matrix4;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockNotifiablePart
@@ -148,9 +147,10 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockNotifiabl
     }
 
     @Override
-    public @NotNull List<? extends IRotorHolder> registerAbilities(
-                                                                   @NotNull MultiblockAbility<? extends IRotorHolder> multiblockAbility) {
-        return Collections.singletonList(this);
+    public void registerAbilities(
+                                  @NotNull MultiblockAbility<IRotorHolder> multiblockAbility,
+                                  @NotNull List<IRotorHolder> abilities) {
+        abilities.add(this);
     }
 
     @Override

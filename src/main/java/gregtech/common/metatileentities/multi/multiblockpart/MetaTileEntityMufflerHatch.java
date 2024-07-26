@@ -38,7 +38,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MetaTileEntityMufflerHatch extends MetaTileEntityMultiblockPart implements
@@ -155,9 +154,10 @@ public class MetaTileEntityMufflerHatch extends MetaTileEntityMultiblockPart imp
     }
 
     @Override
-    public @NotNull List<? extends IMufflerHatch> registerAbilities(
-                                                                    @NotNull MultiblockAbility<? extends IMufflerHatch> multiblockAbility) {
-        return Collections.singletonList(this);
+    public void registerAbilities(
+                                  @NotNull MultiblockAbility<IMufflerHatch> multiblockAbility,
+                                  @NotNull List<IMufflerHatch> abilities) {
+        abilities.add(this);
     }
 
     @Override

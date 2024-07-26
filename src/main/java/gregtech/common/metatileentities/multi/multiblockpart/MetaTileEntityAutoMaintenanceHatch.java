@@ -25,7 +25,6 @@ import codechicken.lib.vec.Matrix4;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MetaTileEntityAutoMaintenanceHatch extends MetaTileEntityMultiblockPart implements
@@ -113,9 +112,10 @@ public class MetaTileEntityAutoMaintenanceHatch extends MetaTileEntityMultiblock
     }
 
     @Override
-    public @NotNull List<? extends IMaintenanceHatch> registerAbilities(
-                                                                        @NotNull MultiblockAbility<? extends IMaintenanceHatch> multiblockAbility) {
-        return Collections.singletonList(this);
+    public void registerAbilities(
+                                  @NotNull MultiblockAbility<IMaintenanceHatch> multiblockAbility,
+                                  @NotNull List<IMaintenanceHatch> abilities) {
+        abilities.add(this);
     }
 
     @Override

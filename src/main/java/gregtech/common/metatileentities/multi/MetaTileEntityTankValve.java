@@ -29,7 +29,6 @@ import codechicken.lib.vec.Matrix4;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 public class MetaTileEntityTankValve extends MetaTileEntityMultiblockPart
@@ -130,9 +129,10 @@ public class MetaTileEntityTankValve extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public @NotNull List<? extends IFluidHandler> registerAbilities(
-                                                                    @NotNull MultiblockAbility<? extends IFluidHandler> multiblockAbility) {
-        return Collections.singletonList(this.getImportFluids());
+    public void registerAbilities(
+                                  @NotNull MultiblockAbility<IFluidHandler> multiblockAbility,
+                                  @NotNull List<IFluidHandler> abilities) {
+        abilities.add(this.getImportFluids());
     }
 
     @Override
