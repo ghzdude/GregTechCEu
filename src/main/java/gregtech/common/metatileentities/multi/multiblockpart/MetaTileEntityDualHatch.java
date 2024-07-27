@@ -36,9 +36,9 @@ import java.util.List;
 
 public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart implements IMultiblockAbilityPart<IItemHandlerModifiable> {
 
-    private final List<DualHandler> dualHandlers = new ArrayList<>();
-    private final List<IMultipleTankHandler> fluidTanks = new ArrayList<>();
-    private final List<IItemHandlerModifiable> itemHandlers = new ArrayList<>();
+    private List<DualHandler> dualHandlers;
+    private List<IMultipleTankHandler> fluidTanks;
+    private List<IItemHandlerModifiable> itemHandlers;
 
     public MetaTileEntityDualHatch(ResourceLocation metaTileEntityId, int tier, boolean isExportHatch) {
         super(metaTileEntityId, tier, isExportHatch);
@@ -52,6 +52,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     @Override
     protected void initializeInventory() {
         super.initializeInventory();
+        dualHandlers = new ArrayList<>();
         for (int i = 0; i < itemHandlers.size(); i++) {
             var handler = itemHandlers.get(i);
             dualHandlers.add(new DualHandler(handler, fluidTanks.get(i), isExportHatch));
@@ -60,6 +61,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     protected IItemHandlerModifiable createImportItemHandler() {
+        itemHandlers = new ArrayList<>();
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
         return new ItemHandlerList(itemHandlers);
@@ -67,6 +69,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     protected FluidTankList createImportFluidHandler() {
+        fluidTanks = new ArrayList<>();
         fluidTanks.add(new FluidTankList(false, createTanks()));
         fluidTanks.add(new FluidTankList(false, createTanks()));
         return new FluidTankList(false, fluidTanks.get(0), fluidTanks.get(1).getFluidTanks().toArray(new IFluidTank[0]));
