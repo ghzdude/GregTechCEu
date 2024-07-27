@@ -1,17 +1,17 @@
 package gregtech.common.metatileentities.multi.multiblockpart;
 
-import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 
 import com.cleanroommc.modularui.widget.Widget;
-
+import com.cleanroommc.modularui.widgets.FluidSlot;
 import com.cleanroommc.modularui.widgets.ItemSlot;
 import com.cleanroommc.modularui.widgets.layout.Grid;
 import com.cleanroommc.modularui.widgets.layout.Row;
 
 import gregtech.api.capability.DualHandler;
+import gregtech.api.capability.IMultipleTankHandler;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
 import gregtech.api.capability.impl.NotifiableFluidTank;
@@ -27,7 +27,6 @@ import gregtech.api.mui.GTGuis;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.IFluidTank;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,9 @@ import java.util.List;
 
 public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart implements IMultiblockAbilityPart<IItemHandlerModifiable> {
 
-    private DualHandler dualHandler;
+    private final List<DualHandler> dualHandlers = new ArrayList<>();
+    private final List<IMultipleTankHandler> fluidTanks = new ArrayList<>();
+    private final List<IItemHandlerModifiable> itemHandlers = new ArrayList<>();
 
     public MetaTileEntityDualHatch(ResourceLocation metaTileEntityId, int tier, boolean isExportHatch) {
         super(metaTileEntityId, tier, isExportHatch);
@@ -51,23 +52,31 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     @Override
     protected void initializeInventory() {
         super.initializeInventory();
-        dualHandler = new DualHandler(this.importItems, this.importFluids, isExportHatch);
+        for (int i = 0; i < itemHandlers.size(); i++) {
+            var handler = itemHandlers.get(i);
+            dualHandlers.add(new DualHandler(handler, fluidTanks.get(i), isExportHatch));
+        }
     }
 
     @Override
     protected IItemHandlerModifiable createImportItemHandler() {
-        List<IItemHandlerModifiable> list = new ArrayList<>();
-        list.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        list.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        return new ItemHandlerList(list);
+        itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
+        itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
+        return new ItemHandlerList(itemHandlers);
     }
 
     @Override
     protected FluidTankList createImportFluidHandler() {
-        List<IFluidTank> list = new ArrayList<>();
-        list.add(new NotifiableFluidTank(16000, null, isExportHatch));
-        list.add(new NotifiableFluidTank(16000, null, isExportHatch));
-        return new FluidTankList(false, list);
+        fluidTanks.add(new FluidTankList(false, createTanks()));
+        fluidTanks.add(new FluidTankList(false, createTanks()));
+        return new FluidTankList(false, fluidTanks.get(0), fluidTanks.get(1).getFluidTanks().toArray(new IFluidTank[0]));
+    }
+
+    private IFluidTank[] createTanks() {
+        return new IFluidTank[] {
+                new NotifiableFluidTank(16000, null, isExportHatch),
+                new NotifiableFluidTank(16000, null, isExportHatch)
+        };
     }
 
     @Override
@@ -81,16 +90,34 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
                 .child(new Row()
                         .widthRel(1f)
                         .coverChildrenHeight()
-//                        .child(createSlotGrid(syncManager)
-//                                .marginRight(4))
+                        .child(createSlotGrid(syncManager, 0)
+                                .marginRight(4))
+                        .child(createSlotGrid(syncManager, 1))
                 );
     }
 
-//    private Widget<?> createSlotGrid(PanelSyncManager syncManager) {
-//        return new Grid().mapTo(2, this.dualHandler.unwrap(), (slot, item) -> {
-//
-//        });
-//    }
+    private Widget<?> createSlotGrid(PanelSyncManager syncManager, int handlerIdx) {
+        var grid = new Grid()
+                .margin(0);
+
+        for (int i = 0; i < 2; i++) {
+            int idx = (i * 2);
+            var handler = itemHandlers.get(handlerIdx);
+            grid.row(new ItemSlot()
+                            .slot(handler, idx),
+                    new ItemSlot()
+                            .slot(handler, idx + 1)
+            );
+        }
+
+        grid.row(new FluidSlot()
+                        .syncHandler(fluidTanks.get(handlerIdx).getTankAt(0)),
+                new FluidSlot()
+                        .syncHandler(fluidTanks.get(handlerIdx).getTankAt(1))
+        );
+
+        return grid;
+    }
 
     @Override
     public MultiblockAbility<IItemHandlerModifiable> getAbility() {
@@ -100,6 +127,11 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     @Override
     public void registerAbilities(@NotNull MultiblockAbility<IItemHandlerModifiable> key,
                                   @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.add(this.dualHandler);
+        abilities.addAll(this.dualHandlers);
+    }
+
+    @Override
+    public void onDistinctChange(boolean newValue) {
+        super.onDistinctChange(newValue);
     }
 }
