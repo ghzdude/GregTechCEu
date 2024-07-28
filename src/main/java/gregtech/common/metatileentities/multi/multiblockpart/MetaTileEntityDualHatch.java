@@ -7,6 +7,7 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.cleanroommc.modularui.widget.Widget;
 import com.cleanroommc.modularui.widgets.FluidSlot;
 import com.cleanroommc.modularui.widgets.ItemSlot;
+import com.cleanroommc.modularui.widgets.SlotGroupWidget;
 import com.cleanroommc.modularui.widgets.layout.Grid;
 import com.cleanroommc.modularui.widgets.layout.Row;
 
@@ -91,16 +92,20 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     public ModularPanel buildUI(PosGuiData guiData, PanelSyncManager syncManager) {
         return GTGuis.createPanel(this, 176, 180)
                 .child(new Row()
+                        .top(22)
+                        .left(6)
                         .widthRel(1f)
                         .coverChildrenHeight()
                         .child(createSlotGrid(syncManager, 0)
                                 .marginRight(4))
                         .child(createSlotGrid(syncManager, 1))
-                );
+                )
+                .child(SlotGroupWidget.playerInventory(7));
     }
 
     private Widget<?> createSlotGrid(PanelSyncManager syncManager, int handlerIdx) {
         var grid = new Grid()
+                .coverChildren()
                 .margin(0);
 
         for (int i = 0; i < 2; i++) {
@@ -131,10 +136,5 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     public void registerAbilities(@NotNull MultiblockAbility<IItemHandlerModifiable> key,
                                   @NotNull List<IItemHandlerModifiable> abilities) {
         abilities.addAll(this.dualHandlers);
-    }
-
-    @Override
-    public void onDistinctChange(boolean newValue) {
-        super.onDistinctChange(newValue);
     }
 }
