@@ -17,6 +17,7 @@ import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
 import gregtech.api.capability.impl.NotifiableFluidTank;
 import gregtech.api.capability.impl.NotifiableItemStackHandler;
+import gregtech.api.items.itemhandlers.GTItemStackHandler;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 
@@ -65,7 +66,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         itemHandlers = new ArrayList<>();
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        return new ItemHandlerList(itemHandlers);
+        return new GTItemStackHandler(this, 0);
     }
 
     @Override
