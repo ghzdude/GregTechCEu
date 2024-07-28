@@ -54,7 +54,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     protected void initializeInventory() {
         dualHandlers = new DualHandler[2];
         for (int i = 0; i < dualHandlers.length; i++) {
-            var itemHandler = new GTItemStackHandler(this, 4);
+            var itemHandler = new NotifiableItemStackHandler(this, 4, null, isExportHatch);
             var fluidHandler = new FluidTankList(false, createTanks());
             dualHandlers[i] = new DualHandler(itemHandler, fluidHandler, isExportHatch);
         }
