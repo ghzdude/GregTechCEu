@@ -34,13 +34,12 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart implements IMultiblockAbilityPart<IItemHandlerModifiable> {
 
-    private List<DualHandler> dualHandlers;
-    private List<IMultipleTankHandler> fluidTanks;
-    private List<IItemHandlerModifiable> itemHandlers;
+    private final DualHandler[] dualHandlers = new DualHandler[2];
 
     public MetaTileEntityDualHatch(ResourceLocation metaTileEntityId, int tier, boolean isExportHatch) {
         super(metaTileEntityId, tier, isExportHatch);
@@ -48,33 +47,27 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
-        return new MetaTileEntityDualHatch(metaTileEntityId, 5, false);
+        return new MetaTileEntityDualHatch(metaTileEntityId, this.getTier(), this.isExportHatch);
     }
 
     @Override
     protected void initializeInventory() {
-        super.initializeInventory();
-        dualHandlers = new ArrayList<>();
-        for (int i = 0; i < itemHandlers.size(); i++) {
-            var handler = itemHandlers.get(i);
-            dualHandlers.add(new DualHandler(handler, fluidTanks.get(i), isExportHatch));
+        for (int i = 0; i < dualHandlers.length; i++) {
+            var itemHandler = new GTItemStackHandler(this, 4);
+            var fluidHandler = new FluidTankList(false, createTanks());
+            dualHandlers[i] = new DualHandler(itemHandler, fluidHandler, isExportHatch);
         }
+        super.initializeInventory();
     }
 
     @Override
     protected IItemHandlerModifiable createImportItemHandler() {
-        itemHandlers = new ArrayList<>();
-        itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        return new ItemHandlerList(itemHandlers);
+        return new ItemHandlerList(Arrays.asList(dualHandlers));
     }
 
     @Override
     protected FluidTankList createImportFluidHandler() {
-        fluidTanks = new ArrayList<>();
-        fluidTanks.add(new FluidTankList(false, createTanks()));
-        fluidTanks.add(new FluidTankList(false, createTanks()));
-        return new FluidTankList(false, fluidTanks.get(0), fluidTanks.get(1).getFluidTanks().toArray(new IFluidTank[0]));
+        return new FluidTankList(dualHandlers[0].allowSameFluidFill(), dualHandlers[0], dualHandlers[1].getFluidTanks().toArray(new IFluidTank[0]));
     }
 
     private IFluidTank[] createTanks() {
@@ -111,7 +104,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
         for (int i = 0; i < 2; i++) {
             int idx = (i * 2);
-            var handler = itemHandlers.get(handlerIdx);
+            var handler = dualHandlers[handlerIdx];
             grid.row(new ItemSlot()
                             .slot(handler, idx),
                     new ItemSlot()
@@ -120,9 +113,9 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         }
 
         grid.row(new FluidSlot()
-                        .syncHandler(fluidTanks.get(handlerIdx).getTankAt(0)),
+                        .syncHandler(dualHandlers[handlerIdx].getTankAt(0)),
                 new FluidSlot()
-                        .syncHandler(fluidTanks.get(handlerIdx).getTankAt(1))
+                        .syncHandler(dualHandlers[handlerIdx].getTankAt(1))
         );
 
         return grid;
@@ -130,12 +123,12 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     public MultiblockAbility<IItemHandlerModifiable> getAbility() {
-        return MultiblockAbility.IMPORT_ITEMS;
+        return null;
     }
 
     @Override
     public void registerAbilities(@NotNull MultiblockAbility<IItemHandlerModifiable> key,
                                   @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.addAll(this.dualHandlers);
+        abilities.addAll(Arrays.asList(this.dualHandlers));
     }
 }
