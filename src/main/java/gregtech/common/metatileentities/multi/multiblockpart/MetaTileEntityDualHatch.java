@@ -66,7 +66,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         itemHandlers = new ArrayList<>();
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
         itemHandlers.add(new NotifiableItemStackHandler(this, 4, null, isExportHatch));
-        return new GTItemStackHandler(this, 0);
+        return new ItemHandlerList(itemHandlers);
     }
 
     @Override
