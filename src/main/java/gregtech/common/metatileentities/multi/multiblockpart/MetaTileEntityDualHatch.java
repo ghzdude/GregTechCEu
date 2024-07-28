@@ -39,7 +39,7 @@ import java.util.List;
 
 public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart implements IMultiblockAbilityPart<IItemHandlerModifiable> {
 
-    private final DualHandler[] dualHandlers = new DualHandler[2];
+    private DualHandler[] dualHandlers;
 
     public MetaTileEntityDualHatch(ResourceLocation metaTileEntityId, int tier, boolean isExportHatch) {
         super(metaTileEntityId, tier, isExportHatch);
@@ -52,6 +52,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     protected void initializeInventory() {
+        dualHandlers = new DualHandler[2];
         for (int i = 0; i < dualHandlers.length; i++) {
             var itemHandler = new GTItemStackHandler(this, 4);
             var fluidHandler = new FluidTankList(false, createTanks());
@@ -123,7 +124,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     public MultiblockAbility<IItemHandlerModifiable> getAbility() {
-        return null;
+        return MultiblockAbility.IMPORT_ITEMS;
     }
 
     @Override
