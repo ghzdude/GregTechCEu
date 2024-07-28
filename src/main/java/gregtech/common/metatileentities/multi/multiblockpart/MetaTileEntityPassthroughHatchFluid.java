@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityPassthroughHatchFluid extends MetaTileEntityMultiblockPart implements IPassthroughHatch,
-                                                 IMultiblockAbilityPart<IPassthroughHatch> {
+                                                 IMultiblockAbilityPart {
 
     private static final int TANK_SIZE = 16_000;
 
@@ -155,10 +155,10 @@ public class MetaTileEntityPassthroughHatchFluid extends MetaTileEntityMultibloc
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IPassthroughHatch> multiblockAbility,
-                                  @NotNull List<IPassthroughHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @NotNull

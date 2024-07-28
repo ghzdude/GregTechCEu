@@ -230,8 +230,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     }
 
     public static TraceabilityPredicate abilities(MultiblockAbility<?>... allowedAbilities) {
-        return tilePredicate((state, tile) -> tile instanceof IMultiblockAbilityPart<?> &&
-                ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()),
+        return tilePredicate((state, tile) -> tile instanceof IMultiblockAbilityPart &&
+                ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart) tile).getAbility()),
                 getCandidates(Arrays.stream(allowedAbilities)
                         .flatMap(ability -> MultiblockAbility.REGISTRY.get(ability).stream())
                         .toArray(MetaTileEntity[]::new)));
@@ -352,7 +352,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             Map<MultiblockAbility<Object>, List<Object>> abilities = new HashMap<>();
             for (IMultiblockPart part : parts) {
                 if (part instanceof IMultiblockAbilityPart abilityPart) {
-                    List<MultiblockAbility> abilityList = abilityPart.getAbilities();
+                    List<MultiblockAbility<?>> abilityList = abilityPart.getAbilities();
                     for (MultiblockAbility ability : abilityList) {
                         if (!checkAbilityPart(ability, ((MetaTileEntity) abilityPart).getPos()))
                             continue;

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityPassthroughHatchItem extends MetaTileEntityMultiblockPart implements IPassthroughHatch,
-                                                IMultiblockAbilityPart<IPassthroughHatch> {
+                                                IMultiblockAbilityPart {
 
     private ItemStackHandler itemStackHandler;
 
@@ -158,10 +158,10 @@ public class MetaTileEntityPassthroughHatchItem extends MetaTileEntityMultiblock
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IPassthroughHatch> multiblockAbility,
-                                  @NotNull List<IPassthroughHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @NotNull

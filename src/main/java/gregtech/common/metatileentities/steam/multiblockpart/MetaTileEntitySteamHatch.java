@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntitySteamHatch extends MetaTileEntityMultiblockPart
-                                      implements IMultiblockAbilityPart<IFluidTank> {
+                                      implements IMultiblockAbilityPart {
 
     private static final int INVENTORY_SIZE = 64000;
     private static final boolean IS_STEEL = ConfigHolder.machines.steelSteamMultiblocks;
@@ -120,10 +120,10 @@ public class MetaTileEntitySteamHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IFluidTank> multiblockAbility,
-                                  @NotNull List<IFluidTank> abilities) {
-        abilities.addAll(this.importFluids.getFluidTanks());
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.addAll(key.castAll(this.importFluids.getFluidTanks()));
     }
 
     @Override

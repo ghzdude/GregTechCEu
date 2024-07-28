@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityTankValve extends MetaTileEntityMultiblockPart
-                                     implements IMultiblockAbilityPart<IFluidHandler> {
+                                     implements IMultiblockAbilityPart {
 
     private final boolean isMetal;
 
@@ -129,10 +129,10 @@ public class MetaTileEntityTankValve extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IFluidHandler> multiblockAbility,
-                                  @NotNull List<IFluidHandler> abilities) {
-        abilities.add(this.getImportFluids());
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this.getImportFluids()));
     }
 
     @Override

@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityMultiFluidHatch extends MetaTileEntityMultiblockNotifiablePart
-                                           implements IMultiblockAbilityPart<IFluidTank>, IControllable {
+                                           implements IMultiblockAbilityPart, IControllable {
 
     private static final int BASE_TANK_SIZE = 8000;
 
@@ -186,10 +186,10 @@ public class MetaTileEntityMultiFluidHatch extends MetaTileEntityMultiblockNotif
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IFluidTank> multiblockAbility,
-                                  @NotNull List<IFluidTank> abilities) {
-        abilities.addAll(fluidTankList.getFluidTanks());
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.addAll(key.castAll(fluidTankList.getFluidTanks()));
     }
 
     @Override

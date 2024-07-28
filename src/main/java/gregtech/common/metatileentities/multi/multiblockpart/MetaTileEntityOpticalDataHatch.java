@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class MetaTileEntityOpticalDataHatch extends MetaTileEntityMultiblockNotifiablePart implements
-                                            IMultiblockAbilityPart<IOpticalDataAccessHatch>, IOpticalDataAccessHatch {
+                                            IMultiblockAbilityPart, IOpticalDataAccessHatch {
 
     private final boolean isTransmitter;
 
@@ -135,10 +135,10 @@ public class MetaTileEntityOpticalDataHatch extends MetaTileEntityMultiblockNoti
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IOpticalDataAccessHatch> multiblockAbility,
-                                  @NotNull List<IOpticalDataAccessHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

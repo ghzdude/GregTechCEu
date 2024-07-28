@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityEnergyHatch extends MetaTileEntityMultiblockPart
-                                       implements IMultiblockAbilityPart<IEnergyContainer> {
+                                       implements IMultiblockAbilityPart {
 
     protected final boolean isExportHatch;
     protected final int amperage;
@@ -101,10 +101,10 @@ public class MetaTileEntityEnergyHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IEnergyContainer> multiblockAbility,
-                                  @NotNull List<IEnergyContainer> abilities) {
-        abilities.add(energyContainer);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(energyContainer));
     }
 
     @Override

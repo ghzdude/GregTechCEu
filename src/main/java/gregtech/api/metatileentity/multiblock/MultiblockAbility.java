@@ -10,11 +10,12 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("InstantiationOfUtilityClass")
+@SuppressWarnings({ "InstantiationOfUtilityClass", "unchecked" })
 public class MultiblockAbility<T> {
 
     public static final Map<String, MultiblockAbility<?>> NAME_REGISTRY = new HashMap<>();
@@ -99,5 +100,13 @@ public class MultiblockAbility<T> {
     public boolean equals(Object obj) {
         return obj instanceof MultiblockAbility<?>other &&
                 this.name.equals(other.toString());
+    }
+
+    public T cast(Object o) {
+        return (T) o;
+    }
+
+    public Collection<T> castAll(Collection<?> c) {
+        return (Collection<T>) c;
     }
 }

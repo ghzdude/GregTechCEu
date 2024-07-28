@@ -58,7 +58,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MetaTileEntityItemBus extends MetaTileEntityMultiblockNotifiablePart
-                                   implements IMultiblockAbilityPart<IItemHandlerModifiable>, IControllable,
+                                   implements IMultiblockAbilityPart, IControllable,
                                    IGhostSlotConfigurable {
 
     @Nullable
@@ -251,13 +251,13 @@ public class MetaTileEntityItemBus extends MetaTileEntityMultiblockNotifiablePar
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IItemHandlerModifiable> key,
-                                  @NotNull List<IItemHandlerModifiable> abilities) {
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
         if (this.hasGhostCircuitInventory() && this.actualImportItems != null) {
-            abilities.add(isExportHatch ? this.exportItems : this.actualImportItems);
+            abilities.add(key.cast(isExportHatch ? this.exportItems : this.actualImportItems));
         } else {
-            abilities.add(isExportHatch ? this.exportItems : this.importItems);
+            abilities.add(key.cast(isExportHatch ? this.exportItems : this.importItems));
         }
     }
 

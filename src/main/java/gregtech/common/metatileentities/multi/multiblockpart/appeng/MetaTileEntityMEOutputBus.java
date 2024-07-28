@@ -44,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MetaTileEntityMEOutputBus extends MetaTileEntityAEHostablePart<IAEItemStack>
-                                       implements IMultiblockAbilityPart<IItemHandlerModifiable> {
+                                       implements IMultiblockAbilityPart {
 
     public final static String ITEM_BUFFER_TAG = "ItemBuffer";
     public final static String WORKING_TAG = "WorkingEnabled";
@@ -195,10 +195,10 @@ public class MetaTileEntityMEOutputBus extends MetaTileEntityAEHostablePart<IAEI
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IItemHandlerModifiable> multiblockAbility,
-                                  @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.add(new InaccessibleInfiniteSlot(this, this.internalBuffer, this.getController()));
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(new InaccessibleInfiniteSlot(this, this.internalBuffer, this.getController())));
     }
 
     @Override

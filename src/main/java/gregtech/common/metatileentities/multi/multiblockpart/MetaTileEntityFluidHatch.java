@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MetaTileEntityFluidHatch extends MetaTileEntityMultiblockNotifiablePart
-                                      implements IMultiblockAbilityPart<IFluidTank>, IControllable,
+                                      implements IMultiblockAbilityPart, IControllable,
                                       IGhostSlotConfigurable {
 
     private static final int INITIAL_INVENTORY_SIZE = 8000;
@@ -250,12 +250,12 @@ public class MetaTileEntityFluidHatch extends MetaTileEntityMultiblockNotifiable
     }
 
     @Override
-    public void registerAbilities(@NotNull MultiblockAbility<IFluidTank> key,
-                                  @NotNull List<IFluidTank> abilities) {
+    public <T> void registerAbilities(@NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
         if (key.equals(MultiblockAbility.EXPORT_FLUIDS)) {
-            abilities.add(this.fluidTank);
+            abilities.add(key.cast(this.fluidTank));
         } else if (key.equals(MultiblockAbility.IMPORT_FLUIDS)) {
-            abilities.addAll(this.dualHandler.unwrap());
+            abilities.addAll(key.castAll(this.dualHandler.unwrap()));
         }
     }
 

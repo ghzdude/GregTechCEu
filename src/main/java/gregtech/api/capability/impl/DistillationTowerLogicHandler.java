@@ -74,7 +74,7 @@ public class DistillationTowerLogicHandler {
     public void determineOrderedFluidOutputs() {
         // noinspection SimplifyStreamApiCallChains
         List<MetaTileEntityMultiblockPart> fluidExportParts = tower.getMultiblockParts().stream()
-                .filter(iMultiblockPart -> iMultiblockPart instanceof IMultiblockAbilityPart<?>abilityPart &&
+                .filter(iMultiblockPart -> iMultiblockPart instanceof IMultiblockAbilityPart abilityPart &&
                         abilityPart.getAbility() == MultiblockAbility.EXPORT_FLUIDS &&
                         abilityPart instanceof MetaTileEntityMultiblockPart)
                 .map(iMultiblockPart -> (MetaTileEntityMultiblockPart) iMultiblockPart)
@@ -94,7 +94,7 @@ public class DistillationTowerLogicHandler {
             if (part.getPos().getY() == y) {
                 List<IFluidTank> hatchTanks = new ObjectArrayList<>();
                 // noinspection unchecked
-                ((IMultiblockAbilityPart<IFluidTank>) part)
+                ((IMultiblockAbilityPart) part)
                         .registerAbilities(MultiblockAbility.EXPORT_FLUIDS, hatchTanks);
                 orderedHandlerList.add(new FluidTankList(false, hatchTanks));
                 tankList.addAll(hatchTanks);

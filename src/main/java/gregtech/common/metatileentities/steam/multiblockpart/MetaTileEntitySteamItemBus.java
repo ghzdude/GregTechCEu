@@ -56,10 +56,10 @@ public class MetaTileEntitySteamItemBus extends MetaTileEntityItemBus {
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IItemHandlerModifiable> multiblockAbility,
-                                  @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.add(isExportHatch ? this.exportItems : this.importItems);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(isExportHatch ? this.exportItems : this.importItems));
     }
 
     // Override base texture to have a bus with 4 slots, but ULV textures

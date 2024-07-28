@@ -60,7 +60,7 @@ import java.util.function.Supplier;
 import static gregtech.api.capability.GregtechDataCodes.*;
 
 public class MetaTileEntityMaintenanceHatch extends MetaTileEntityMultiblockPart
-                                            implements IMultiblockAbilityPart<IMaintenanceHatch>, IMaintenanceHatch {
+                                            implements IMultiblockAbilityPart, IMaintenanceHatch {
 
     private final boolean isConfigurable;
     private GTItemStackHandler itemStackHandler;
@@ -498,10 +498,10 @@ public class MetaTileEntityMaintenanceHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IMaintenanceHatch> multiblockAbility,
-                                  @NotNull List<IMaintenanceHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

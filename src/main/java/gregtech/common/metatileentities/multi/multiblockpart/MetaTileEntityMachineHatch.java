@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityMachineHatch extends MetaTileEntityMultiblockNotifiablePart
-                                        implements IMultiblockAbilityPart<IItemHandlerModifiable> {
+                                        implements IMultiblockAbilityPart {
 
     private final IItemHandlerModifiable machineHandler;
 
@@ -52,10 +52,10 @@ public class MetaTileEntityMachineHatch extends MetaTileEntityMultiblockNotifiab
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IItemHandlerModifiable> multiblockAbility,
-                                  @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.add(machineHandler);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(machineHandler));
     }
 
     @Override

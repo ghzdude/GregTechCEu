@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MetaTileEntityReservoirHatch extends MetaTileEntityMultiblockNotifiablePart
-                                          implements IMultiblockAbilityPart<IFluidTank> {
+                                          implements IMultiblockAbilityPart {
 
     private static final int FLUID_AMOUNT = 2_000_000_000;
     private final InfiniteWaterTank fluidTank;
@@ -112,10 +112,10 @@ public class MetaTileEntityReservoirHatch extends MetaTileEntityMultiblockNotifi
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IFluidTank> multiblockAbility,
-                                  @NotNull List<IFluidTank> abilities) {
-        abilities.add(fluidTank);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(fluidTank));
     }
 
     @Override

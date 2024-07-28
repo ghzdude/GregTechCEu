@@ -46,7 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAEFluidStack>
-                                        implements IMultiblockAbilityPart<IFluidTank>, IDataStickIntractable {
+                                        implements IMultiblockAbilityPart, IDataStickIntractable {
 
     public final static String FLUID_BUFFER_TAG = "FluidTanks";
     public final static String WORKING_TAG = "WorkingEnabled";
@@ -269,10 +269,10 @@ public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAE
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IFluidTank> multiblockAbility,
-                                  @NotNull List<IFluidTank> abilities) {
-        abilities.addAll(Arrays.asList(this.getAEFluidHandler().getInventory()));
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.addAll(key.castAll(Arrays.asList(this.getAEFluidHandler().getInventory())));
     }
 
     @Override

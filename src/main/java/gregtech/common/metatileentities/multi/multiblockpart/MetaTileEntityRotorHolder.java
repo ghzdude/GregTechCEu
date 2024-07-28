@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockNotifiablePart
-                                       implements IMultiblockAbilityPart<IRotorHolder>, IRotorHolder {
+                                       implements IMultiblockAbilityPart, IRotorHolder {
 
     static final int SPEED_INCREMENT = 1;
     static final int SPEED_DECREMENT = 3;
@@ -147,10 +147,10 @@ public class MetaTileEntityRotorHolder extends MetaTileEntityMultiblockNotifiabl
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IRotorHolder> multiblockAbility,
-                                  @NotNull List<IRotorHolder> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

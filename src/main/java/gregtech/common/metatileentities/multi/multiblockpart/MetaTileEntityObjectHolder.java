@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityObjectHolder extends MetaTileEntityMultiblockNotifiablePart
-                                        implements IMultiblockAbilityPart<IObjectHolder>, IObjectHolder {
+                                        implements IMultiblockAbilityPart, IObjectHolder {
 
     // purposefully not exposed to automation or capabilities
     private final ObjectHolderHandler heldItems;
@@ -85,10 +85,10 @@ public class MetaTileEntityObjectHolder extends MetaTileEntityMultiblockNotifiab
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IObjectHolder> multiblockAbility,
-                                  @NotNull List<IObjectHolder> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

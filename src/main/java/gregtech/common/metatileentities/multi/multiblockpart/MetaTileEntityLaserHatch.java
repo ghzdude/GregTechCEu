@@ -34,7 +34,7 @@ import static gregtech.api.GTValues.V;
 import static gregtech.api.GTValues.VN;
 
 public class MetaTileEntityLaserHatch extends MetaTileEntityMultiblockPart
-                                      implements IMultiblockAbilityPart<ILaserContainer>, IDataInfoProvider {
+                                      implements IMultiblockAbilityPart, IDataInfoProvider {
 
     private final boolean isOutput;
     private final int tier;
@@ -78,10 +78,10 @@ public class MetaTileEntityLaserHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<ILaserContainer> multiblockAbility,
-                                  @NotNull List<ILaserContainer> abilities) {
-        abilities.add(this.buffer);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this.buffer));
     }
 
     @Override

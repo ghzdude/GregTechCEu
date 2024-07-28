@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityMufflerHatch extends MetaTileEntityMultiblockPart implements
-                                        IMultiblockAbilityPart<IMufflerHatch>, ITieredMetaTileEntity, IMufflerHatch {
+                                        IMultiblockAbilityPart, ITieredMetaTileEntity, IMufflerHatch {
 
     private final int recoveryChance;
     private final GTItemStackHandler inventory;
@@ -154,10 +154,10 @@ public class MetaTileEntityMufflerHatch extends MetaTileEntityMultiblockPart imp
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IMufflerHatch> multiblockAbility,
-                                  @NotNull List<IMufflerHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart implements
-                                            IMultiblockAbilityPart<IOpticalComputationHatch>, IOpticalComputationHatch {
+                                            IMultiblockAbilityPart, IOpticalComputationHatch {
 
     private final boolean isTransmitter;
 
@@ -158,10 +158,10 @@ public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IOpticalComputationHatch> multiblockAbility,
-                                  @NotNull List<IOpticalComputationHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override

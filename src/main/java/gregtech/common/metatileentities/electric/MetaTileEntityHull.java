@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class MetaTileEntityHull extends MetaTileEntityMultiblockPart
-                                implements IPassthroughHatch, IMultiblockAbilityPart<IPassthroughHatch> {
+                                implements IPassthroughHatch, IMultiblockAbilityPart {
 
     protected IEnergyContainer energyContainer;
     private AENetworkProxy gridProxy;
@@ -117,10 +117,10 @@ public class MetaTileEntityHull extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IPassthroughHatch> multiblockAbility,
-                                  @NotNull List<IPassthroughHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @NotNull

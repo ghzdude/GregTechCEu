@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class MetaTileEntityDataAccessHatch extends MetaTileEntityMultiblockNotifiablePart
-                                           implements IMultiblockAbilityPart<IDataAccessHatch>, IDataAccessHatch,
+                                           implements IMultiblockAbilityPart, IDataAccessHatch,
                                            IDataInfoProvider {
 
     private final Set<Recipe> recipes;
@@ -213,10 +213,10 @@ public class MetaTileEntityDataAccessHatch extends MetaTileEntityMultiblockNotif
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IDataAccessHatch> multiblockAbility,
-                                  @NotNull List<IDataAccessHatch> abilities) {
-        abilities.add(this);
+    public <T> void registerAbilities(
+                                      @NotNull MultiblockAbility<T> key,
+                                      @NotNull List<T> abilities) {
+        abilities.add(key.cast(this));
     }
 
     @Override
