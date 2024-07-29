@@ -68,7 +68,9 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
 
     @Override
     protected FluidTankList createImportFluidHandler() {
-        return new FluidTankList(dualHandlers[0].allowSameFluidFill(), dualHandlers[0], dualHandlers[1].unwrap().toArray(new IFluidTank[0]));
+        List<IFluidTank> tanks = new ArrayList<>();
+        for (var h : dualHandlers) tanks.addAll(h.unwrap());
+        return new FluidTankList(false, tanks);
     }
 
     private IFluidTank[] createTanks() {
