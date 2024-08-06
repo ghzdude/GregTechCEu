@@ -589,8 +589,8 @@ public class MetaTileEntityPowerSubstation extends MultiblockWithDisplayBase
         return new ProgressWidget()
                 .progress(() -> energyStoredValue.getValue().doubleValue() / energyCapacityValue.getValue().doubleValue())
                 .texture(GTGuiTextures.PROGRESS_BAR_MULTI_ENERGY_YELLOW, MultiblockUIFactory.Bars.FULL_WIDTH)
+                .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                 .tooltipBuilder(t -> {
-                    t.setAutoUpdate(true);
                     if (isStructureFormed()) {
                         t.addLine(IKey.lang("gregtech.multiblock.energy_stored", energyStoredValue.getValue(), energyCapacityValue.getValue()));
                     } else {

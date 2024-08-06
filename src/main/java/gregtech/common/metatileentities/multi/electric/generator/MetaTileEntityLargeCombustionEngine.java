@@ -253,6 +253,7 @@ public class MetaTileEntityLargeCombustionEngine extends FuelMultiblockControlle
                 yield new ProgressWidget()
                         .progress(() -> fuelValue.getValue()[1] == 0 ? 0 : 1.0 * fuelValue.getValue()[0] / fuelValue.getValue()[1])
                         .texture(GTGuiTextures.PROGRESS_BAR_LCE_FUEL, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> createFuelTooltip(t, fuelValue, fuelNameValue));
             }
             case 1 -> {
@@ -262,8 +263,8 @@ public class MetaTileEntityLargeCombustionEngine extends FuelMultiblockControlle
                 yield new ProgressWidget()
                         .progress(() -> lubricantValue.getValue()[1] == 0 ? 0 : 1.0 * lubricantValue.getValue()[0] / lubricantValue.getValue()[1])
                         .texture(GTGuiTextures.PROGRESS_BAR_LCE_LUBRICANT, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
-                            t.setAutoUpdate(true);
                             if (isStructureFormed()) {
                                 if (lubricantValue.getValue()[0] == 0) {
                                     t.addLine(IKey.lang("gregtech.multiblock.large_combustion_engine.no_lubricant"));
@@ -285,8 +286,8 @@ public class MetaTileEntityLargeCombustionEngine extends FuelMultiblockControlle
                 yield new ProgressWidget()
                         .progress(() -> oxygenValue.getValue()[1] == 0 ? 0 : 1.0 * oxygenValue.getValue()[0] / oxygenValue.getValue()[1])
                         .texture(GTGuiTextures.PROGRESS_BAR_LCE_OXYGEN, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
-                            t.setAutoUpdate(true);
                             if (isStructureFormed()) {
                                 if (boostValue.getBoolValue()) {
                                     if (oxygenValue.getValue()[0] == 0) {

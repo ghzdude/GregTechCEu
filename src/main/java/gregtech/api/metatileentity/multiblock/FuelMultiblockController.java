@@ -183,7 +183,6 @@ public abstract class FuelMultiblockController extends RecipeMapMultiblockContro
      * @param fuelNameValue the name of the fuel
      */
     protected void createFuelTooltip(@NotNull Tooltip tooltip, @NotNull FixedIntArraySyncValue amounts, @NotNull StringSyncValue fuelNameValue) {
-        tooltip.setAutoUpdate(true);
         if (isStructureFormed()) {
             Fluid fluid = fuelNameValue.getStringValue() == null ? null : FluidRegistry.getFluid(fuelNameValue.getStringValue());
             if (fluid == null) {
