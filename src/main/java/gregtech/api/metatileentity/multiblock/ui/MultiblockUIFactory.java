@@ -95,8 +95,8 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
             screenHeight -= (r + 1) * 8;
 
             Row row = new Row()
-                    .size(Bars.FULL_WIDTH, Bars.HEIGHT);
-            // .left(4);
+                    .size(Bars.FULL_WIDTH, Bars.HEIGHT)
+                    .top(screenHeight + 6);
 
             int from = r * cols;
             int to = Math.min(from + cols, cols);
@@ -108,12 +108,10 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
             }
 
             for (int i = from; i < to; i++) {
-                row.top(screenHeight + 6)
-                        .child(progressMulti.createProgressBar(guiSyncManager, i, rowSize)
-                                .width(rowSize)
-                                .height(Bars.HEIGHT)
-                                // .width(cols == 3 ? Bars.THIRD_WIDTH : cols == 2 ? Bars.HALF_WIDTH : Bars.FULL_WIDTH)
-                                .direction(ProgressWidget.Direction.RIGHT));
+                row.child(progressMulti.createProgressBar(guiSyncManager, i, rowSize)
+                        .width(rowSize)
+                        .height(Bars.HEIGHT)
+                        .direction(ProgressWidget.Direction.RIGHT));
             }
 
             column.child(row);
