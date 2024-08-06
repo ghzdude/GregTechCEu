@@ -1,10 +1,5 @@
 package gregtech.common.metatileentities.multi.electric;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-
 import gregtech.api.GTValues;
 import gregtech.api.capability.GregtechTileCapabilities;
 import gregtech.api.capability.IEnergyContainer;
@@ -17,7 +12,6 @@ import gregtech.api.metatileentity.ITieredMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
 import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
@@ -53,6 +47,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.IntSyncValue;
+import com.cleanroommc.modularui.widgets.ProgressWidget;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -387,13 +385,14 @@ public class MetaTileEntityFluidDrill extends MultiblockWithDisplayBase
     }
 
     @Override
-    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index) {
-        IntSyncValue operationsValue = new IntSyncValue(() -> BedrockFluidVeinHandler.getOperationsRemaining(getWorld(), minerLogic.getChunkX(), minerLogic.getChunkZ()), null);
+    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index, int barWidth) {
+        IntSyncValue operationsValue = new IntSyncValue(() -> BedrockFluidVeinHandler.getOperationsRemaining(getWorld(),
+                minerLogic.getChunkX(), minerLogic.getChunkZ()), null);
         guiSyncManager.syncValue("operations_remaining", operationsValue);
 
         return new ProgressWidget()
                 .progress(() -> operationsValue.getIntValue() * 1.0 / BedrockFluidVeinHandler.MAXIMUM_VEIN_OPERATIONS)
-                .texture(GTGuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION, MultiblockUIFactory.Bars.FULL_WIDTH)
+                .texture(GTGuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION, barWidth)
                 .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                 .tooltipBuilder(t -> {
                     if (isStructureFormed()) {
@@ -401,7 +400,8 @@ public class MetaTileEntityFluidDrill extends MultiblockWithDisplayBase
                             t.addLine(IKey.lang("gregtech.multiblock.fluid_rig.vein_depleted"));
                         } else {
                             // TODO working dynamic color substitutions into IKey.lang
-                            int percent = (int) Math.round(100.0 * operationsValue.getIntValue() / BedrockFluidVeinHandler.MAXIMUM_VEIN_OPERATIONS);
+                            int percent = (int) Math.round(100.0 * operationsValue.getIntValue() /
+                                    BedrockFluidVeinHandler.MAXIMUM_VEIN_OPERATIONS);
                             if (percent > 40) {
                                 t.addLine(IKey.lang("gregtech.multiblock.fluid_rig.vein_depletion.high", percent));
                             } else if (percent > 10) {

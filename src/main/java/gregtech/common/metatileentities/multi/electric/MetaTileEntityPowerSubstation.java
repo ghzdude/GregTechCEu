@@ -1,11 +1,5 @@
 package gregtech.common.metatileentities.multi.electric;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-import com.cleanroommc.modularui.value.sync.StringSyncValue;
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-
 import gregtech.api.GTValues;
 import gregtech.api.GregTechAPI;
 import gregtech.api.capability.GregtechDataCodes;
@@ -16,7 +10,6 @@ import gregtech.api.capability.impl.EnergyContainerList;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
 import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.mui.sync.BigIntegerSyncValue;
 import gregtech.api.pattern.*;
@@ -51,6 +44,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.widgets.ProgressWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -580,19 +576,23 @@ public class MetaTileEntityPowerSubstation extends MultiblockWithDisplayBase
     }
 
     @Override
-    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index) {
-        BigIntegerSyncValue energyStoredValue = new BigIntegerSyncValue(() -> energyBank == null ? BigInteger.ZERO : energyBank.getStored(), null);
-        BigIntegerSyncValue energyCapacityValue = new BigIntegerSyncValue(() -> energyBank == null ? BigInteger.ZERO : energyBank.getCapacity(), null);
+    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index, int barWidth) {
+        BigIntegerSyncValue energyStoredValue = new BigIntegerSyncValue(
+                () -> energyBank == null ? BigInteger.ZERO : energyBank.getStored(), null);
+        BigIntegerSyncValue energyCapacityValue = new BigIntegerSyncValue(
+                () -> energyBank == null ? BigInteger.ZERO : energyBank.getCapacity(), null);
         guiSyncManager.syncValue("energy_stored", energyStoredValue);
         guiSyncManager.syncValue("energy_capacity", energyCapacityValue);
 
         return new ProgressWidget()
-                .progress(() -> energyStoredValue.getValue().doubleValue() / energyCapacityValue.getValue().doubleValue())
-                .texture(GTGuiTextures.PROGRESS_BAR_MULTI_ENERGY_YELLOW, MultiblockUIFactory.Bars.FULL_WIDTH)
+                .progress(
+                        () -> energyStoredValue.getValue().doubleValue() / energyCapacityValue.getValue().doubleValue())
+                .texture(GTGuiTextures.PROGRESS_BAR_MULTI_ENERGY_YELLOW, barWidth)
                 .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                 .tooltipBuilder(t -> {
                     if (isStructureFormed()) {
-                        t.addLine(IKey.lang("gregtech.multiblock.energy_stored", energyStoredValue.getValue(), energyCapacityValue.getValue()));
+                        t.addLine(IKey.lang("gregtech.multiblock.energy_stored", energyStoredValue.getValue(),
+                                energyCapacityValue.getValue()));
                     } else {
                         t.addLine(IKey.lang("gregtech.multiblock.invalid_structure"));
                     }

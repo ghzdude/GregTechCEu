@@ -1,6 +1,5 @@
 package gregtech.api.mui.sync;
 
-import com.cleanroommc.modularui.api.widget.IGuiAction;
 import com.cleanroommc.modularui.api.widget.Interactable;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.value.sync.GuiSyncManager;
@@ -44,6 +43,7 @@ public class SimplePanelSH extends PanelSyncHandler {
         /**
          * @see PanelSyncHandler#createUI(ModularPanel, GuiSyncManager)
          */
-        @NotNull ModularPanel apply(@NotNull ModularPanel mainPanel, @NotNull GuiSyncManager syncManager);
+        @NotNull
+        ModularPanel apply(@NotNull ModularPanel mainPanel, @NotNull GuiSyncManager syncManager);
     }
 }

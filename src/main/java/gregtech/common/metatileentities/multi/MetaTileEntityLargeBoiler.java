@@ -1,21 +1,5 @@
 package gregtech.common.metatileentities.multi;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.drawable.ItemDrawable;
-import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.utils.Color;
-import com.cleanroommc.modularui.value.IntValue;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
-import com.cleanroommc.modularui.widget.Widget;
-import com.cleanroommc.modularui.widgets.ButtonWidget;
-
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-import com.cleanroommc.modularui.widgets.layout.Row;
-
-import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
-
 import gregtech.api.capability.impl.BoilerRecipeLogic;
 import gregtech.api.capability.impl.CommonFluidFilters;
 import gregtech.api.capability.impl.FluidTankList;
@@ -24,7 +8,6 @@ import gregtech.api.metatileentity.MTETrait;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
 import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.mui.GTGuis;
 import gregtech.api.mui.sync.SimplePanelSH;
@@ -54,6 +37,18 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.drawable.ItemDrawable;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.utils.Color;
+import com.cleanroommc.modularui.value.IntValue;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.IntSyncValue;
+import com.cleanroommc.modularui.widget.Widget;
+import com.cleanroommc.modularui.widgets.ButtonWidget;
+import com.cleanroommc.modularui.widgets.ProgressWidget;
+import com.cleanroommc.modularui.widgets.layout.Row;
+import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -187,36 +182,32 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
                         .child(new ItemDrawable(getStackForm())
                                 .asWidget()
                                 .size(16)
-                                .marginRight(4)
-                        )
+                                .marginRight(4))
                         .child(IKey.lang("gregtech.multiblock.large_boiler.throttle.title")
                                 .asWidget()
-                                .heightRel(1.0f)
-                        )
-                )
+                                .heightRel(1.0f)))
                 .child(new Row()
-                        //TODO add inc/dec buttons
+                        // TODO add inc/dec buttons
                         .child(new TextFieldWidget()
                                 .size(40, 20)
                                 .left(38)
                                 .top(20)
                                 .setTextColor(Color.WHITE.darker(1)) // TODO proper color
                                 .setNumbers(0, 100)
-                                .value(new IntValue.Dynamic(syncValue::getIntValue, syncValue::setIntValue)) //TODO show % sign
-                                .background(GTGuiTextures.DISPLAY)
-                        )
-                );
+                                .value(new IntValue.Dynamic(syncValue::getIntValue, syncValue::setIntValue)) // TODO
+                                                                                                             // show %
+                                                                                                             // sign
+                                .background(GTGuiTextures.DISPLAY)));
 
         var panelSH = new SimplePanelSH(parentPanel, (m, sm) -> popupPanel);
 
         guiSyncManager.syncValue("throttle_panel", panelSH);
 
         list.add(new ButtonWidget<>()
-                        .width(18)
-                        .overlay(GTGuiTextures.BUTTON_THROTTLE_MINUS)
-                        .background(GTGuiTextures.BUTTON) //TODO make this work
-                        .onMousePressed(panelSH::openClose)
-        );
+                .width(18)
+                .overlay(GTGuiTextures.BUTTON_THROTTLE_MINUS)
+                .background(GTGuiTextures.BUTTON) // TODO make this work
+                .onMousePressed(panelSH::openClose));
     }
 
     private void setThrottlePercentage(int amount) {
@@ -367,15 +358,16 @@ public class MetaTileEntityLargeBoiler extends MultiblockWithDisplayBase impleme
     }
 
     @Override
-    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index) {
+    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index, int barWidth) {
         IntSyncValue waterFilledValue = new IntSyncValue(this::getWaterFilled, null);
         IntSyncValue waterCapacityValue = new IntSyncValue(this::getWaterCapacity, null);
         guiSyncManager.syncValue("water_filled", waterFilledValue);
         guiSyncManager.syncValue("water_capacity", waterCapacityValue);
 
         return new ProgressWidget()
-                .progress(() -> waterCapacityValue.getIntValue() == 0 ? 0 : waterFilledValue.getIntValue() * 1.0 / waterCapacityValue.getIntValue())
-                .texture(GTGuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION, MultiblockUIFactory.Bars.FULL_WIDTH)
+                .progress(() -> waterCapacityValue.getIntValue() == 0 ? 0 :
+                        waterFilledValue.getIntValue() * 1.0 / waterCapacityValue.getIntValue())
+                .texture(GTGuiTextures.PROGRESS_BAR_FLUID_RIG_DEPLETION, barWidth)
                 .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                 .tooltipBuilder(t -> {
                     if (isStructureFormed()) {

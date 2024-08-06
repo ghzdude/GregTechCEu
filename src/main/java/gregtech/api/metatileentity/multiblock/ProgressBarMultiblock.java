@@ -9,7 +9,7 @@ public interface ProgressBarMultiblock {
     int getProgressBarCount();
 
     @NotNull
-    ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index);
+    ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index, int barWidth);
 
     /**
      * @return the amount of columns in the progress bar grid

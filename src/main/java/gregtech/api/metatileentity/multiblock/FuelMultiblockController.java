@@ -1,10 +1,5 @@
 package gregtech.api.metatileentity.multiblock;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.screen.Tooltip;
-
-import com.cleanroommc.modularui.value.sync.StringSyncValue;
-
 import gregtech.api.GTValues;
 import gregtech.api.capability.IEnergyContainer;
 import gregtech.api.capability.IMultipleTankHandler;
@@ -26,6 +21,9 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.screen.Tooltip;
+import com.cleanroommc.modularui.value.sync.StringSyncValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -178,13 +176,15 @@ public abstract class FuelMultiblockController extends RecipeMapMultiblockContro
     }
 
     /**
-     * @param tooltip    the tooltip to populate
-     * @param amounts    the sync value containing an array of [fuel stored, fuel capacity]
+     * @param tooltip       the tooltip to populate
+     * @param amounts       the sync value containing an array of [fuel stored, fuel capacity]
      * @param fuelNameValue the name of the fuel
      */
-    protected void createFuelTooltip(@NotNull Tooltip tooltip, @NotNull FixedIntArraySyncValue amounts, @NotNull StringSyncValue fuelNameValue) {
+    protected void createFuelTooltip(@NotNull Tooltip tooltip, @NotNull FixedIntArraySyncValue amounts,
+                                     @NotNull StringSyncValue fuelNameValue) {
         if (isStructureFormed()) {
-            Fluid fluid = fuelNameValue.getStringValue() == null ? null : FluidRegistry.getFluid(fuelNameValue.getStringValue());
+            Fluid fluid = fuelNameValue.getStringValue() == null ? null :
+                    FluidRegistry.getFluid(fuelNameValue.getStringValue());
             if (fluid == null) {
                 tooltip.addLine(IKey.lang("gregtech.multiblock.large_combustion_engine.fuel_none"));
             } else {

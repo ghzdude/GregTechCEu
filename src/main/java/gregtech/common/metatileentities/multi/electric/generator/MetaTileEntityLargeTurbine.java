@@ -1,24 +1,13 @@
 package gregtech.common.metatileentities.multi.electric.generator;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
-import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
-import com.cleanroommc.modularui.value.sync.StringSyncValue;
-import com.cleanroommc.modularui.widgets.ProgressWidget;
-
 import gregtech.api.GTValues;
 import gregtech.api.capability.IRotorHolder;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.MultiblockFuelRecipeLogic;
-import gregtech.api.gui.GuiTextures;
-import gregtech.api.gui.resources.TextureArea;
 import gregtech.api.metatileentity.ITieredMetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
 import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.mui.sync.FixedIntArraySyncValue;
 import gregtech.api.pattern.BlockPattern;
@@ -42,6 +31,11 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.IntSyncValue;
+import com.cleanroommc.modularui.value.sync.StringSyncValue;
+import com.cleanroommc.modularui.widgets.ProgressWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -278,7 +272,7 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
     }
 
     @Override
-    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index) {
+    public @NotNull ProgressWidget createProgressBar(@NotNull GuiSyncManager guiSyncManager, int index, int barWidth) {
         return switch (index) {
             case 0 -> {
                 FixedIntArraySyncValue fuelValue = new FixedIntArraySyncValue(this::getFuelAmount, null, 2);
@@ -297,8 +291,9 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
                 guiSyncManager.syncValue("fuel_name", fuelNameValue);
 
                 yield new ProgressWidget()
-                        .progress(() -> fuelValue.getValue()[1] == 0 ? 0 : 1.0 * fuelValue.getValue()[0] / fuelValue.getValue()[1])
-                        .texture(GTGuiTextures.PROGRESS_BAR_LCE_FUEL, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .progress(() -> fuelValue.getValue()[1] == 0 ? 0 :
+                                1.0 * fuelValue.getValue()[0] / fuelValue.getValue()[1])
+                        .texture(GTGuiTextures.PROGRESS_BAR_LCE_FUEL, barWidth)
                         .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> createFuelTooltip(t, fuelValue, fuelNameValue));
             }
@@ -323,8 +318,9 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
                 guiSyncManager.syncValue("rotor_max_speed", rotorMaxSpeedValue);
 
                 yield new ProgressWidget()
-                        .progress(() -> rotorMaxSpeedValue.getIntValue() == 0 ? 0 : 1.0 * rotorSpeedValue.getIntValue() / rotorMaxSpeedValue.getIntValue())
-                        .texture(GTGuiTextures.PROGRESS_BAR_TURBINE_ROTOR_SPEED, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .progress(() -> rotorMaxSpeedValue.getIntValue() == 0 ? 0 :
+                                1.0 * rotorSpeedValue.getIntValue() / rotorMaxSpeedValue.getIntValue())
+                        .texture(GTGuiTextures.PROGRESS_BAR_TURBINE_ROTOR_SPEED, barWidth)
                         .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
                             if (isStructureFormed()) {
@@ -334,11 +330,14 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
 
                                 // TODO working dynamic color substitutions into IKey.lang
                                 if (percent < 0.4) {
-                                    t.addLine(IKey.lang("gregtech.multiblock.turbine.rotor_speed.low", speed, maxSpeed));
+                                    t.addLine(
+                                            IKey.lang("gregtech.multiblock.turbine.rotor_speed.low", speed, maxSpeed));
                                 } else if (percent < 0.8) {
-                                    t.addLine(IKey.lang("gregtech.multiblock.turbine.rotor_speed.medium", speed, maxSpeed));
+                                    t.addLine(IKey.lang("gregtech.multiblock.turbine.rotor_speed.medium", speed,
+                                            maxSpeed));
                                 } else {
-                                    t.addLine(IKey.lang("gregtech.multiblock.turbine.rotor_speed.high", speed, maxSpeed));
+                                    t.addLine(
+                                            IKey.lang("gregtech.multiblock.turbine.rotor_speed.high", speed, maxSpeed));
                                 }
                             } else {
                                 t.addLine(IKey.lang("gregtech.multiblock.invalid_structure"));
@@ -366,7 +365,7 @@ public class MetaTileEntityLargeTurbine extends FuelMultiblockController
 
                 yield new ProgressWidget()
                         .progress(() -> durabilityValue.getIntValue() / 100.0)
-                        .texture(GTGuiTextures.PROGRESS_BAR_TURBINE_ROTOR_DURABILITY, MultiblockUIFactory.Bars.THIRD_WIDTH)
+                        .texture(GTGuiTextures.PROGRESS_BAR_TURBINE_ROTOR_DURABILITY, barWidth)
                         .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
                             if (isStructureFormed()) {

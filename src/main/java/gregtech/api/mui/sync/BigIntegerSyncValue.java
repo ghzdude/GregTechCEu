@@ -1,11 +1,10 @@
 package gregtech.api.mui.sync;
 
+import net.minecraft.network.PacketBuffer;
+
 import com.cleanroommc.modularui.api.value.sync.IStringSyncValue;
 import com.cleanroommc.modularui.network.NetworkUtils;
 import com.cleanroommc.modularui.value.sync.ValueSyncHandler;
-
-import net.minecraft.network.PacketBuffer;
-
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,14 +21,17 @@ public class BigIntegerSyncValue extends ValueSyncHandler<BigInteger> implements
     private final Supplier<BigInteger> getter;
     private final @Nullable Consumer<BigInteger> setter;
 
-    public BigIntegerSyncValue(@NotNull Supplier<@NotNull BigInteger> getter, @Nullable Consumer<@NotNull BigInteger> setter) {
+    public BigIntegerSyncValue(@NotNull Supplier<@NotNull BigInteger> getter,
+                               @Nullable Consumer<@NotNull BigInteger> setter) {
         this.getter = getter;
         this.setter = setter;
     }
 
     @Contract("null, _, null, _ -> fail")
-    public BigIntegerSyncValue(@Nullable Supplier<@NotNull BigInteger> clientGetter, @Nullable Consumer<@NotNull BigInteger> clientSetter,
-                               @Nullable Supplier<@NotNull BigInteger> serverGetter, @Nullable Consumer<@NotNull BigInteger> serverSetter) {
+    public BigIntegerSyncValue(@Nullable Supplier<@NotNull BigInteger> clientGetter,
+                               @Nullable Consumer<@NotNull BigInteger> clientSetter,
+                               @Nullable Supplier<@NotNull BigInteger> serverGetter,
+                               @Nullable Consumer<@NotNull BigInteger> serverSetter) {
         if (clientGetter == null && serverGetter == null) {
             throw new NullPointerException("Client or server getter must not be null!");
         }

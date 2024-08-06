@@ -1,11 +1,5 @@
 package gregtech.common.metatileentities.multi.electric;
 
-import com.cleanroommc.modularui.api.drawable.IKey;
-import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
-import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-
-import com.cleanroommc.modularui.value.sync.IntSyncValue;
-
 import gregtech.api.GTValues;
 import gregtech.api.capability.*;
 import gregtech.api.capability.impl.EnergyContainerList;
@@ -19,7 +13,6 @@ import gregtech.api.gui.widgets.SuppliedImageWidget;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.*;
-import gregtech.api.metatileentity.multiblock.ui.MultiblockUIFactory;
 import gregtech.api.mui.GTGuiTextures;
 import gregtech.api.pattern.BlockPattern;
 import gregtech.api.pattern.FactoryBlockPattern;
@@ -61,6 +54,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.render.pipeline.IVertexOperation;
 import codechicken.lib.vec.Matrix4;
+import com.cleanroommc.modularui.api.drawable.IKey;
+import com.cleanroommc.modularui.value.sync.DoubleSyncValue;
+import com.cleanroommc.modularui.value.sync.GuiSyncManager;
+import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -532,7 +529,8 @@ public class MetaTileEntityHPCA extends MultiblockWithDisplayBase
 
     @Override
     public com.cleanroommc.modularui.widgets.@NotNull ProgressWidget createProgressBar(
-            @NotNull GuiSyncManager guiSyncManager, int index) {
+                                                                                       @NotNull GuiSyncManager guiSyncManager,
+                                                                                       int index, int barWidth) {
         return switch (index) {
             case 0 -> {
                 IntSyncValue currentCWUtValue = new IntSyncValue(() -> hpcaHandler.cachedCWUt, null);
@@ -542,11 +540,12 @@ public class MetaTileEntityHPCA extends MultiblockWithDisplayBase
 
                 yield new com.cleanroommc.modularui.widgets.ProgressWidget()
                         .progress(() -> 1.0 * currentCWUtValue.getIntValue() / maxCWUtValue.getIntValue())
-                        .texture(GTGuiTextures.PROGRESS_BAR_HPCA_COMPUTATION, MultiblockUIFactory.Bars.HALF_WIDTH)
+                        .texture(GTGuiTextures.PROGRESS_BAR_HPCA_COMPUTATION, barWidth)
                         .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
                             if (isStructureFormed()) {
-                                t.addLine(IKey.lang("gregtech.multiblock.hpca.computation", currentCWUtValue.getIntValue(), maxCWUtValue.getIntValue()));
+                                t.addLine(IKey.lang("gregtech.multiblock.hpca.computation",
+                                        currentCWUtValue.getIntValue(), maxCWUtValue.getIntValue()));
                             } else {
                                 t.addLine(IKey.lang("gregtech.multiblock.invalid_structure"));
                             }
@@ -558,7 +557,7 @@ public class MetaTileEntityHPCA extends MultiblockWithDisplayBase
 
                 yield new com.cleanroommc.modularui.widgets.ProgressWidget()
                         .progress(() -> Math.min(1.0, temperatureValue.getDoubleValue() / DAMAGE_TEMPERATURE))
-                        .texture(GTGuiTextures.PROGRESS_BAR_FUSION_HEAT, MultiblockUIFactory.Bars.HALF_WIDTH)
+                        .texture(GTGuiTextures.PROGRESS_BAR_FUSION_HEAT, barWidth)
                         .tooltip(tooltip -> tooltip.setAutoUpdate(true))
                         .tooltipBuilder(t -> {
                             if (isStructureFormed()) {

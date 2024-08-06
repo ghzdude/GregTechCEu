@@ -1,5 +1,14 @@
 package gregtech.api.metatileentity.multiblock.ui;
 
+import gregtech.api.capability.GregtechTileCapabilities;
+import gregtech.api.capability.IControllable;
+import gregtech.api.capability.IDistinctBusController;
+import gregtech.api.metatileentity.multiblock.MultiblockWithDisplayBase;
+import gregtech.api.metatileentity.multiblock.ProgressBarMultiblock;
+import gregtech.api.mui.GTGuiTextures;
+import gregtech.api.mui.GTGuis;
+import gregtech.api.mui.sync.SimplePanelSH;
+
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
@@ -8,7 +17,6 @@ import com.cleanroommc.modularui.value.BoolValue;
 import com.cleanroommc.modularui.value.IntValue;
 import com.cleanroommc.modularui.value.sync.BooleanSyncValue;
 import com.cleanroommc.modularui.value.sync.GuiSyncManager;
-
 import com.cleanroommc.modularui.value.sync.IntSyncValue;
 import com.cleanroommc.modularui.widget.Widget;
 import com.cleanroommc.modularui.widgets.ButtonWidget;
@@ -16,19 +24,7 @@ import com.cleanroommc.modularui.widgets.CycleButtonWidget;
 import com.cleanroommc.modularui.widgets.ProgressWidget;
 import com.cleanroommc.modularui.widgets.SlotGroupWidget;
 import com.cleanroommc.modularui.widgets.layout.Column;
-
 import com.cleanroommc.modularui.widgets.layout.Row;
-
-import gregtech.api.capability.GregtechTileCapabilities;
-import gregtech.api.capability.IControllable;
-import gregtech.api.capability.IDistinctBusController;
-import gregtech.api.metatileentity.multiblock.MultiblockWithDisplayBase;
-import gregtech.api.metatileentity.multiblock.ProgressBarMultiblock;
-import gregtech.api.mui.GTGuiTextures;
-import gregtech.api.mui.GTGuis;
-
-import gregtech.api.mui.sync.SimplePanelSH;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -63,7 +59,7 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
 
         createBars();
         createScreen();
-        //TODO createExtras() hook for overrides?
+        // TODO createExtras() hook for overrides?
         createInventory();
         createButtons();
         createPowerButton();
@@ -88,31 +84,36 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
         final int rows = progressMulti.getProgressBarRows();
         final int cols = progressMulti.getProgressBarCols();
 
-        Column column = new Column();
+        int rowSize = Bars.FULL_WIDTH;
+        if (cols > 1) rowSize = (rowSize / cols) - 1;
+
+        Column column = new Column()
+                .size(Bars.FULL_WIDTH, Bars.HEIGHT * rows);
         rootColumn.child(column);
 
         for (int r = 0; r < rows; r++) {
             screenHeight -= (r + 1) * 8;
 
             Row row = new Row()
-                    .size(Bars.FULL_WIDTH, Bars.HEIGHT)
-                    .left(4);
+                    .size(Bars.FULL_WIDTH, Bars.HEIGHT);
+            // .left(4);
 
             int from = r * cols;
             int to = Math.min(from + cols, cols);
 
             if (to - from > 1) {
-                //TODO MUI2 bug workaround, should be able to apply this to every row but it crashes with single element rows
+                // TODO MUI2 bug workaround, should be able to apply this to every row but it crashes with single
+                // element rows
                 row.mainAxisAlignment(Alignment.MainAxis.SPACE_BETWEEN);
             }
 
             for (int i = from; i < to; i++) {
                 row.top(screenHeight + 6)
-                        .child(progressMulti.createProgressBar(guiSyncManager, i)
+                        .child(progressMulti.createProgressBar(guiSyncManager, i, rowSize)
+                                .width(rowSize)
                                 .height(Bars.HEIGHT)
-                                .width(cols == 3 ? Bars.THIRD_WIDTH : cols == 2 ? Bars.HALF_WIDTH : Bars.FULL_WIDTH)
-                                .direction(ProgressWidget.Direction.RIGHT)
-                        );
+                                // .width(cols == 3 ? Bars.THIRD_WIDTH : cols == 2 ? Bars.HALF_WIDTH : Bars.FULL_WIDTH)
+                                .direction(ProgressWidget.Direction.RIGHT));
             }
 
             column.child(row);
@@ -135,8 +136,7 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
         Column inventory = new Column()
                 .child(SlotGroupWidget.playerInventory()
                         .left(3)
-                        .bottom(4)
-        );
+                        .bottom(4));
 
         inventoryRow.child(inventory);
         rootColumn.child(inventoryRow);
@@ -182,10 +182,9 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
 
         buttonColumn.child(new ButtonWidget<>()
                 .size(18, 18)
-                .overlay(GTGuiTextures.BUTTON_THROTTLE_MINUS) //TODO texture
-                .background(GTGuiTextures.BUTTON) //TODO make this work
-                .onMousePressed(panelSH::openClose)
-        );
+                .overlay(GTGuiTextures.BUTTON_THROTTLE_MINUS) // TODO texture
+                .background(GTGuiTextures.BUTTON) // TODO make this work
+                .onMousePressed(panelSH::openClose));
     }
 
     protected void createDistinctButton() {
@@ -194,7 +193,7 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
             guiSyncManager.syncValue("distinct_state", distinctValue);
 
             buttonColumn.child(new CycleButtonWidget()
-                            .top(18)
+                    .top(18)
                     .size(18, 18)
                     .value(new BoolValue.Dynamic(distinctValue::getBoolValue, distinctValue::setBoolValue))
                     .textureGetter(
@@ -203,10 +202,7 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
                     .tooltipBuilder(t -> t.setAutoUpdate(true)
                             .addLine(distinctValue.getBoolValue() ?
                                     IKey.lang("gregtech.multiblock.universal.distinct_enabled") :
-                                    IKey.lang("gregtech.multiblock.universal.distinct_disabled")
-                            )
-                    )
-            );
+                                    IKey.lang("gregtech.multiblock.universal.distinct_disabled"))));
         } else {
             buttonColumn.child(new Widget<>()
                     .top(18)
@@ -225,10 +221,10 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
                     .top(36)
                     .size(18, 18)
                     .textureGetter(i -> switch (i) {
-                        case 1 -> GTGuiTextures.BUTTON_VOID_ITEM;
-                        case 2 -> GTGuiTextures.BUTTON_VOID_FLUID;
-                        case 3 -> GTGuiTextures.BUTTON_VOID_ITEM_FLUID;
-                        default -> GTGuiTextures.BUTTON_VOID_DISABLED;
+                    case 1 -> GTGuiTextures.BUTTON_VOID_ITEM;
+                    case 2 -> GTGuiTextures.BUTTON_VOID_FLUID;
+                    case 3 -> GTGuiTextures.BUTTON_VOID_ITEM_FLUID;
+                    default -> GTGuiTextures.BUTTON_VOID_DISABLED;
                     })
                     .background(GTGuiTextures.BUTTON)
                     .value(new IntValue.Dynamic(voidingValue::getIntValue, voidingValue::setIntValue))
@@ -259,26 +255,27 @@ public class MultiblockUIFactory<T extends MultiblockWithDisplayBase> {
 
             inventoryRow.child(column);
             column.child(new CycleButtonWidget()
-                            .top(5)
-                            .size(18, 18)
-                            .textureGetter(i -> i == 0 ? GTGuiTextures.BUTTON_POWER_OFF : GTGuiTextures.BUTTON_POWER_ON)
-                            .background(GTGuiTextures.BUTTON)
-                            .value(new BoolValue.Dynamic(workingStateValue::getBoolValue, workingStateValue::setBoolValue)))
+                    .top(5)
+                    .size(18, 18)
+                    .textureGetter(i -> i == 0 ? GTGuiTextures.BUTTON_POWER_OFF : GTGuiTextures.BUTTON_POWER_ON)
+                    .background(GTGuiTextures.BUTTON)
+                    .value(new BoolValue.Dynamic(workingStateValue::getBoolValue, workingStateValue::setBoolValue)))
                     .child(new Widget<>()
                             .background(GTGuiTextures.BUTTON_POWER_DETAIL)
                             .bottom(0)
-                            .size(18, 6)
-                    );
+                            .size(18, 6));
         }
     }
 
     public static final class Screen {
+
         public static int WIDTH = 190;
 
         private Screen() {}
     }
 
     public static final class Bars {
+
         public static int FULL_WIDTH = Screen.WIDTH;
         public static int HALF_WIDTH = 94;
         public static int THIRD_WIDTH = 62;
