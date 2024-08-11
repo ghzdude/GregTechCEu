@@ -6,6 +6,7 @@ import gregtech.api.capability.IHPCAComponentHatch;
 import gregtech.api.capability.IHPCAComputationProvider;
 import gregtech.api.capability.IHPCACoolantProvider;
 import gregtech.api.gui.ModularUI;
+import gregtech.api.metatileentity.multiblock.AbilityInstances;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.api.unification.material.Materials;
@@ -74,10 +75,8 @@ public abstract class MetaTileEntityHPCAComponent extends MetaTileEntityMultiblo
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IHPCAComponentHatch> multiblockAbility,
-                                  @NotNull List<IHPCAComponentHatch> abilities) {
-        abilities.add(this);
+    public void registerAbilities(@NotNull AbilityInstances abilityInstances) {
+        abilityInstances.add(this);
     }
 
     @Override

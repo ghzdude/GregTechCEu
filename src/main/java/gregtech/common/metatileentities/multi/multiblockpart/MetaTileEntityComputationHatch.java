@@ -7,6 +7,7 @@ import gregtech.api.capability.IOpticalComputationProvider;
 import gregtech.api.gui.ModularUI;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
+import gregtech.api.metatileentity.multiblock.AbilityInstances;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.api.util.GTLog;
@@ -158,10 +159,8 @@ public class MetaTileEntityComputationHatch extends MetaTileEntityMultiblockPart
     }
 
     @Override
-    public void registerAbilities(
-                                  @NotNull MultiblockAbility<IOpticalComputationHatch> multiblockAbility,
-                                  @NotNull List<IOpticalComputationHatch> abilities) {
-        abilities.add(this);
+    public void registerAbilities(@NotNull AbilityInstances abilityInstances) {
+        abilityInstances.add(this);
     }
 
     @Override
