@@ -79,7 +79,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     @Nullable
     public BlockPattern structurePattern;
 
-    private final Map<MultiblockAbility<Object>, List<Object>> multiblockAbilities = new HashMap<>();
+    private final Map<MultiblockAbility<Object>, AbilityInstances> multiblockAbilities = new HashMap<>();
     private final List<IMultiblockPart> multiblockParts = new ArrayList<>();
     private boolean structureFormed;
 
@@ -349,7 +349,7 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
             }
             this.setFlipped(context.neededFlip());
             parts.sort(Comparator.comparing(it -> multiblockPartSorter().apply(((MetaTileEntity) it).getPos())));
-            Map<MultiblockAbility<Object>, List<Object>> abilities = new HashMap<>();
+            Map<MultiblockAbility<Object>, AbilityInstances> abilities = new HashMap<>();
             for (IMultiblockPart part : parts) {
                 if (part instanceof IMultiblockAbilityPart abilityPart) {
                     List<MultiblockAbility> abilityList = abilityPart.getAbilities();
@@ -357,8 +357,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
                         if (!checkAbilityPart(ability, ((MetaTileEntity) abilityPart).getPos()))
                             continue;
 
-                        List abilityInstancesList = abilities.computeIfAbsent(ability,
-                                k -> new ArrayList<>());
+                        AbilityInstances abilityInstancesList = abilities.computeIfAbsent(ability,
+                                AbilityInstances::new);
                         abilityPart.registerAbilities(ability, abilityInstancesList);
                     }
                 }
@@ -406,9 +406,8 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
         return Collections.unmodifiableList(getAbilitiesModifiable(ability));
     }
 
-    @SuppressWarnings("unchecked")
     public <T> List<T> getAbilitiesModifiable(MultiblockAbility<T> ability) {
-        return (List<T>) multiblockAbilities.getOrDefault(ability, Collections.emptyList());
+        return multiblockAbilities.getOrDefault(ability, AbilityInstances.EMPTY).cast();
     }
 
     public List<IMultiblockPart> getMultiblockParts() {
