@@ -21,6 +21,7 @@ import gregtech.api.items.itemhandlers.GTItemStackHandler;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 
+import gregtech.api.metatileentity.multiblock.AbilityInstances;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
 
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
@@ -115,10 +116,12 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
             );
         }
 
+        List<DualHandler.DualEntry> l = dualHandlers[handlerIdx].unwrap();
+
         grid.row(new FluidSlot()
-                        .syncHandler(dualHandlers[handlerIdx].getTankAt(0)),
+                        .syncHandler(l.get(0)),
                 new FluidSlot()
-                        .syncHandler(dualHandlers[handlerIdx].getTankAt(1))
+                        .syncHandler(l.get(1))
         );
 
         return grid;
@@ -130,8 +133,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     }
 
     @Override
-    public void registerAbilities(@NotNull MultiblockAbility<IItemHandlerModifiable> key,
-                                  @NotNull List<IItemHandlerModifiable> abilities) {
-        abilities.addAll(Arrays.asList(this.dualHandlers));
+    public void registerAbilities(@NotNull AbilityInstances abilityInstances) {
+        abilityInstances.addAll(Arrays.asList(this.dualHandlers));
     }
 }
