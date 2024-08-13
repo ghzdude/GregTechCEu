@@ -11,6 +11,10 @@ import com.cleanroommc.modularui.widgets.SlotGroupWidget;
 import com.cleanroommc.modularui.widgets.layout.Grid;
 import com.cleanroommc.modularui.widgets.layout.Row;
 
+import com.cleanroommc.modularui.widgets.slot.ModularSlot;
+
+import com.cleanroommc.modularui.widgets.slot.SlotGroup;
+
 import gregtech.api.capability.DualHandler;
 import gregtech.api.capability.IMultipleTankHandler;
 import gregtech.api.capability.impl.FluidTankList;
@@ -105,14 +109,18 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         var grid = new Grid()
                 .coverChildren()
                 .margin(0);
+        var group = new SlotGroup("slot_group:" + handlerIdx, 2, true);
+        syncManager.registerSlotGroup(group);
 
         for (int i = 0; i < 2; i++) {
             int idx = (i * 2);
             var handler = dualHandlers[handlerIdx];
             grid.row(new ItemSlot()
-                            .slot(handler, idx),
+                            .slot(new ModularSlot(handler, idx)
+                                    .slotGroup(group)),
                     new ItemSlot()
-                            .slot(handler, idx + 1)
+                            .slot(new ModularSlot(handler, idx + 1)
+                                    .slotGroup(group))
             );
         }
 
