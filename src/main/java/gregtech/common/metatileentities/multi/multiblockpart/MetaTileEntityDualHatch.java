@@ -74,7 +74,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
     @Override
     protected FluidTankList createImportFluidHandler() {
         List<IFluidTank> tanks = new ArrayList<>();
-        for (var h : dualHandlers) tanks.addAll(h.unwrap());
+        for (var h : dualHandlers) tanks.addAll(h.getFluidTanks());
         return new FluidTankList(false, tanks);
     }
 
@@ -112,9 +112,9 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         var group = new SlotGroup("slot_group:" + handlerIdx, 2, true);
         syncManager.registerSlotGroup(group);
 
+        var handler = dualHandlers[handlerIdx];
         for (int i = 0; i < 2; i++) {
             int idx = (i * 2);
-            var handler = dualHandlers[handlerIdx];
             grid.row(new ItemSlot()
                             .slot(new ModularSlot(handler, idx)
                                     .slotGroup(group)),
@@ -124,12 +124,10 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
             );
         }
 
-        List<DualHandler.DualEntry> l = dualHandlers[handlerIdx].unwrap();
-
         grid.row(new FluidSlot()
-                        .syncHandler(l.get(0)),
+                        .syncHandler(handler.getTankAt(0)),
                 new FluidSlot()
-                        .syncHandler(l.get(1))
+                        .syncHandler(handler.getTankAt(1))
         );
 
         return grid;
