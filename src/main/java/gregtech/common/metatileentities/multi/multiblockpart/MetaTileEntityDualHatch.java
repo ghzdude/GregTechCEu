@@ -1,48 +1,40 @@
 package gregtech.common.metatileentities.multi.multiblockpart;
 
-import com.cleanroommc.modularui.factory.PosGuiData;
-import com.cleanroommc.modularui.screen.ModularPanel;
-import com.cleanroommc.modularui.value.sync.PanelSyncManager;
-
-import com.cleanroommc.modularui.widget.Widget;
-import com.cleanroommc.modularui.widgets.FluidSlot;
-import com.cleanroommc.modularui.widgets.ItemSlot;
-import com.cleanroommc.modularui.widgets.SlotGroupWidget;
-import com.cleanroommc.modularui.widgets.layout.Grid;
-import com.cleanroommc.modularui.widgets.layout.Row;
-
-import com.cleanroommc.modularui.widgets.slot.ModularSlot;
-
-import com.cleanroommc.modularui.widgets.slot.SlotGroup;
-
 import gregtech.api.capability.DualHandler;
-import gregtech.api.capability.IMultipleTankHandler;
 import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.ItemHandlerList;
 import gregtech.api.capability.impl.NotifiableFluidTank;
 import gregtech.api.capability.impl.NotifiableItemStackHandler;
-import gregtech.api.items.itemhandlers.GTItemStackHandler;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-
 import gregtech.api.metatileentity.multiblock.AbilityInstances;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
-
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
-
 import gregtech.api.mui.GTGuis;
 
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import com.cleanroommc.modularui.factory.PosGuiData;
+import com.cleanroommc.modularui.screen.ModularPanel;
+import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.cleanroommc.modularui.widget.Widget;
+import com.cleanroommc.modularui.widgets.FluidSlot;
+import com.cleanroommc.modularui.widgets.ItemSlot;
+import com.cleanroommc.modularui.widgets.SlotGroupWidget;
+import com.cleanroommc.modularui.widgets.layout.Grid;
+import com.cleanroommc.modularui.widgets.layout.Row;
+import com.cleanroommc.modularui.widgets.slot.ModularSlot;
+import com.cleanroommc.modularui.widgets.slot.SlotGroup;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart implements IMultiblockAbilityPart<IItemHandlerModifiable> {
+public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiablePart
+                                     implements IMultiblockAbilityPart<IItemHandlerModifiable> {
 
     private DualHandler[] dualHandlers;
 
@@ -100,8 +92,7 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
                         .coverChildrenHeight()
                         .child(createSlotGrid(syncManager, 0)
                                 .marginRight(4))
-                        .child(createSlotGrid(syncManager, 1))
-                )
+                        .child(createSlotGrid(syncManager, 1)))
                 .child(SlotGroupWidget.playerInventory(7));
     }
 
@@ -116,19 +107,17 @@ public class MetaTileEntityDualHatch extends MetaTileEntityMultiblockNotifiableP
         for (int i = 0; i < 2; i++) {
             int idx = (i * 2);
             grid.row(new ItemSlot()
-                            .slot(new ModularSlot(handler, idx)
-                                    .slotGroup(group)),
+                    .slot(new ModularSlot(handler, idx)
+                            .slotGroup(group)),
                     new ItemSlot()
                             .slot(new ModularSlot(handler, idx + 1)
-                                    .slotGroup(group))
-            );
+                                    .slotGroup(group)));
         }
 
         grid.row(new FluidSlot()
-                        .syncHandler(handler.getTankAt(0)),
+                .syncHandler(handler.getTankAt(0)),
                 new FluidSlot()
-                        .syncHandler(handler.getTankAt(1))
-        );
+                        .syncHandler(handler.getTankAt(1)));
 
         return grid;
     }

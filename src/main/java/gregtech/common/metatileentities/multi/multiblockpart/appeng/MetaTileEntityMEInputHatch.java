@@ -1,13 +1,15 @@
 package gregtech.common.metatileentities.multi.multiblockpart.appeng;
 
 import gregtech.api.GTValues;
+import gregtech.api.capability.DualHandler;
 import gregtech.api.capability.GregtechDataCodes;
 import gregtech.api.capability.GregtechTileCapabilities;
 import gregtech.api.capability.IDataStickIntractable;
 import gregtech.api.capability.impl.FluidTankList;
+import gregtech.api.capability.impl.NotifiableItemStackHandler;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.widgets.ImageWidget;
+import gregtech.api.gui.widgets.SlotWidget;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.AbilityInstances;
@@ -32,6 +34,7 @@ import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.IFluidTank;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
 import appeng.api.config.Actionable;
 import appeng.api.storage.IMEMonitor;
@@ -54,6 +57,7 @@ public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAE
     private final static int CONFIG_SIZE = 16;
     private boolean workingEnabled = true;
     protected ExportOnlyAEFluidList aeFluidHandler;
+    private DualHandler dualHandler;
 
     public MetaTileEntityMEInputHatch(ResourceLocation metaTileEntityId) {
         this(metaTileEntityId, GTValues.EV);
@@ -73,12 +77,20 @@ public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAE
     @Override
     protected void initializeInventory() {
         getAEFluidHandler(); // initialize it
+        this.dualHandler = new DualHandler(
+                new NotifiableItemStackHandler(this, 2, getController(), isExportHatch),
+                new FluidTankList(false, getAEFluidHandler().getInventory()), isExportHatch);
         super.initializeInventory();
     }
 
     @Override
+    protected IItemHandlerModifiable createImportItemHandler() {
+        return this.dualHandler;
+    }
+
+    @Override
     protected FluidTankList createImportFluidHandler() {
-        return new FluidTankList(false, getAEFluidHandler().getInventory());
+        return (FluidTankList) this.dualHandler.getFluidDelegate();
     }
 
     @Override
@@ -163,13 +175,21 @@ public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAE
         // Config slots
         builder.widget(new AEFluidConfigWidget(7, 25, this.getAEFluidHandler()));
 
+        builder.widget(new SlotWidget(this.dualHandler, 0, 7 + 18 * 4, 25 + 18 * 2,
+                true, true, true)
+                        .setBackgroundTexture(GuiTextures.SLOT));
+
+        builder.widget(new SlotWidget(this.dualHandler, 1, 7 + 18 * 4, 25 + 18 * 3,
+                true, true, true)
+                        .setBackgroundTexture(GuiTextures.SLOT));
+
         // Arrow image
         builder.image(7 + 18 * 4, 25 + 18, 18, 18, GuiTextures.ARROW_DOUBLE);
 
         // GT Logo, cause there's some free real estate
-        builder.widget(new ImageWidget(7 + 18 * 4, 25 + 18 * 3, 17, 17,
-                GTValues.XMAS.get() ? GuiTextures.GREGTECH_LOGO_XMAS : GuiTextures.GREGTECH_LOGO)
-                        .setIgnoreColor(true));
+        // builder.widget(new ImageWidget(7 + 18 * 4, 25 + 18 * 3, 17, 17,
+        // GTValues.XMAS.get() ? GuiTextures.GREGTECH_LOGO_XMAS : GuiTextures.GREGTECH_LOGO)
+        // .setIgnoreColor(true));
 
         builder.bindPlayerInventory(player.inventory, GuiTextures.SLOT, 7, 18 + 18 * 4 + 12);
         return builder;
@@ -265,13 +285,14 @@ public class MetaTileEntityMEInputHatch extends MetaTileEntityAEHostablePart<IAE
     }
 
     @Override
-    public MultiblockAbility<IFluidTank> getAbility() {
-        return MultiblockAbility.IMPORT_FLUIDS;
+    public @NotNull List<MultiblockAbility<?>> getAbilities() {
+        return Arrays.asList(MultiblockAbility.IMPORT_ITEMS);
     }
 
     @Override
     public void registerAbilities(@NotNull AbilityInstances abilityInstances) {
-        abilityInstances.addAll(Arrays.asList(this.getAEFluidHandler().getInventory()));
+        if (abilityInstances.isKey(MultiblockAbility.IMPORT_ITEMS))
+            abilityInstances.add(this.dualHandler);
     }
 
     @Override
