@@ -6,6 +6,8 @@ import gregtech.common.creativetab.GTCreativeTabs;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.properties.PropertyHelper;
+import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -27,9 +29,9 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class VariantBlock<T extends Enum<T> & IStringSerializable> extends Block implements IWalkingSpeedBonus {
+public class VariantBlock<T extends IStringSerializable & Comparable<T>> extends Block implements IWalkingSpeedBonus {
 
-    protected PropertyEnum<T> VARIANT;
+    protected PropertyHelper<T> VARIANT;
     protected T[] VALUES;
 
     @SuppressWarnings("DataFlowIssue")
