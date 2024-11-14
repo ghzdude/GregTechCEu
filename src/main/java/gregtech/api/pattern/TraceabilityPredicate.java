@@ -16,12 +16,14 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class TraceabilityPredicate {
+public class TraceabilityPredicate implements Predicate<BlockWorldState> {
 
     // Allow any block.
     public static TraceabilityPredicate ANY = new TraceabilityPredicate((state) -> true);
@@ -240,7 +242,30 @@ public class TraceabilityPredicate {
         return this;
     }
 
-    public static class SimplePredicate {
+    @Override
+    public @NotNull TraceabilityPredicate and(@NotNull Predicate<? super BlockWorldState> other) {
+        Objects.requireNonNull(other);
+        var p = new TraceabilityPredicate(this);
+        if (this != AIR && other != AIR) {
+            p.isSingle = false;
+        } else {
+            p.isSingle = this.isSingle && other.isSingle;
+        }
+        return () -> test(t) && other.test(t);
+    }
+
+    static TraceabilityPredicate compressPredicates(List<TraceabilityPredicate> predicates) {
+        TraceabilityPredicate compound = null;
+        for (var p : predicates) {
+            if (compound == null)
+                compound = p;
+            else
+                compound = compound.and(p);
+        }
+        return compound;
+    }
+
+    public static class SimplePredicate implements Predicate<BlockWorldState> {
 
         public final Supplier<BlockInfo[]> candidates;
 
@@ -296,6 +321,7 @@ public class TraceabilityPredicate {
             return result;
         }
 
+        @Override
         public boolean test(BlockWorldState blockWorldState) {
             return predicate.test(blockWorldState);
         }
