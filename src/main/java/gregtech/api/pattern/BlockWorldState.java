@@ -78,10 +78,10 @@ public class BlockWorldState {
     }
 
     public IBlockState getOffsetState(EnumFacing face) {
-        if (pos instanceof MutableBlockPos) {
-            ((MutableBlockPos) pos).move(face);
+        if (pos instanceof MutableBlockPos mutable) {
+            mutable.move(face);
             IBlockState blockState = world.getBlockState(pos);
-            ((MutableBlockPos) pos).move(face.getOpposite());
+            mutable.move(face.getOpposite());
             return blockState;
         }
         return world.getBlockState(this.pos.offset(face));
