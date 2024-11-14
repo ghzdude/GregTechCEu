@@ -8,6 +8,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * BlockInfo represents immutable information for block in world
@@ -18,9 +22,9 @@ public class BlockInfo {
 
     public static final BlockInfo EMPTY = new BlockInfo(Blocks.AIR);
 
-    private final IBlockState blockState;
-    private final TileEntity tileEntity;
-    private final Object info;
+    private final @NotNull IBlockState blockState;
+    private final @Nullable TileEntity tileEntity;
+    private final @Nullable Object info;
 
     public BlockInfo(Block block) {
         this(block.getDefaultState());
@@ -34,23 +38,23 @@ public class BlockInfo {
         this(blockState, tileEntity, null);
     }
 
-    public BlockInfo(IBlockState blockState, TileEntity tileEntity, Object info) {
-        this.blockState = blockState;
+    public BlockInfo(@NotNull IBlockState blockState, @Nullable TileEntity tileEntity, @Nullable Object info) {
+        this.blockState = Objects.requireNonNull(blockState);
         this.tileEntity = tileEntity;
         this.info = info;
         Preconditions.checkArgument(tileEntity == null || blockState.getBlock().hasTileEntity(blockState),
                 "Cannot create block info with tile entity for block not having it");
     }
 
-    public IBlockState getBlockState() {
+    public @NotNull IBlockState getBlockState() {
         return blockState;
     }
 
-    public TileEntity getTileEntity() {
+    public @Nullable TileEntity getTileEntity() {
         return tileEntity;
     }
 
-    public Object getInfo() {
+    public @Nullable Object getInfo() {
         return info;
     }
 
