@@ -9,13 +9,12 @@ import gregtech.api.util.BlockInfo;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.include.com.google.common.collect.ImmutableList;
 
@@ -293,7 +292,7 @@ public class TraceabilityPredicate implements Predicate<BlockWorldState> {
         return a.negate();
     }
 
-    public static class SimplePredicate {
+    public static class SimplePredicate implements Predicate<BlockWorldState> {
 
         public final Supplier<BlockInfo[]> candidates;
         private BlockInfo[] cache = null;
@@ -350,8 +349,30 @@ public class TraceabilityPredicate implements Predicate<BlockWorldState> {
             return result;
         }
 
+        @Override
         public boolean test(BlockWorldState blockWorldState) {
             return predicate.test(blockWorldState);
+        }
+
+        @Override
+        public @NotNull SimplePredicate and(@NotNull Predicate<? super BlockWorldState> other) {
+            if (!(other instanceof SimplePredicate simplePredicate))
+                return this;
+            return new SimplePredicate(this.predicate.and(simplePredicate.predicate),
+                    () -> ArrayUtils.addAll(this.cache, simplePredicate.cache));
+        }
+
+        @Override
+        public @NotNull SimplePredicate or(@NotNull Predicate<? super BlockWorldState> other) {
+            if (!(other instanceof SimplePredicate simplePredicate))
+                return this;
+            return new SimplePredicate(this.predicate.or(simplePredicate.predicate),
+                    () -> ArrayUtils.addAll(this.cache, simplePredicate.cache));
+        }
+
+        @Override
+        public @NotNull SimplePredicate negate() {
+            return new SimplePredicate(this.predicate.negate(), this.candidates);
         }
 
         public boolean testLimited(BlockWorldState blockWorldState) {
@@ -419,11 +440,13 @@ public class TraceabilityPredicate implements Predicate<BlockWorldState> {
         @SideOnly(Side.CLIENT)
         @Override
         public String getErrorInfo() {
-            int number = -1;
-            if (type == 0) number = predicate.maxGlobalCount;
-            if (type == 1) number = predicate.minGlobalCount;
-            if (type == 2) number = predicate.maxLayerCount;
-            if (type == 3) number = predicate.minLayerCount;
+            int number = switch (type) {
+                case 0 -> predicate.maxGlobalCount;
+                case 1 -> predicate.minGlobalCount;
+                case 2 -> predicate.maxLayerCount;
+                case 3 -> predicate.minLayerCount;
+                default -> -1;
+            };
             return I18n.format("gregtech.multiblock.pattern.error.limited." + type, number);
         }
     }
