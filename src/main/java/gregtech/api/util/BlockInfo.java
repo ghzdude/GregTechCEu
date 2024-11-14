@@ -60,4 +60,8 @@ public class BlockInfo {
             world.setTileEntity(pos, tileEntity);
         }
     }
+
+    public boolean isAir() {
+        return blockState.getBlock() == Blocks.AIR;
+    }
 }

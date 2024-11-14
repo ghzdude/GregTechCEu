@@ -90,4 +90,8 @@ public class BlockWorldState {
     public World getWorld() {
         return world;
     }
+
+    public boolean isAir() {
+        return this.state.getBlock().isAir(this.state, this.world, this.pos);
+    }
 }
