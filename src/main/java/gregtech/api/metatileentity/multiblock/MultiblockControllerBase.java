@@ -209,33 +209,53 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
     }
 
     public static TraceabilityPredicate metaTileEntities(MetaTileEntity... metaTileEntities) {
-        ResourceLocation[] ids = Arrays.stream(metaTileEntities).filter(Objects::nonNull)
-                .map(tile -> tile.metaTileEntityId).toArray(ResourceLocation[]::new);
+        Objects.requireNonNull(metaTileEntities);
+        ResourceLocation[] ids = new ResourceLocation[metaTileEntities.length];
+        for (int i = 0; i < metaTileEntities.length; i++) {
+            ids[i] = Objects.requireNonNull(metaTileEntities[i]).metaTileEntityId;
+        }
         return tilePredicate((state, tile) -> ArrayUtils.contains(ids, tile.metaTileEntityId),
                 getCandidates(metaTileEntities));
     }
 
     private static Supplier<BlockInfo[]> getCandidates(MetaTileEntity... metaTileEntities) {
-        return () -> Arrays.stream(metaTileEntities).filter(Objects::nonNull).map(tile -> {
-            // TODO
-            MetaTileEntityHolder holder = new MetaTileEntityHolder();
-            holder.setMetaTileEntity(tile);
-            holder.getMetaTileEntity().onPlacement();
-            holder.getMetaTileEntity().setFrontFacing(EnumFacing.SOUTH);
-            return new BlockInfo(tile.getBlock().getDefaultState(), holder);
-        }).toArray(BlockInfo[]::new);
+        return () -> {
+            if (metaTileEntities == null || metaTileEntities.length == 0)
+                return new BlockInfo[0];
+            BlockInfo[] infos = new BlockInfo[metaTileEntities.length];
+            for (int i = 0; i < metaTileEntities.length; i++) {
+                var metaTileEntity = Objects.requireNonNull(metaTileEntities[i]);
+                // TODO
+                var holder = new MetaTileEntityHolder();
+                holder.setMetaTileEntity(metaTileEntity);
+                holder.getMetaTileEntity().onPlacement();
+                holder.getMetaTileEntity().setFrontFacing(EnumFacing.SOUTH);
+                infos[i] = new BlockInfo(metaTileEntity.getBlock().getDefaultState(), holder);
+            }
+            return infos;
+        };
     }
 
     private static Supplier<BlockInfo[]> getCandidates(IBlockState... allowedStates) {
-        return () -> Arrays.stream(allowedStates).map(state -> new BlockInfo(state, null)).toArray(BlockInfo[]::new);
+        return () -> {
+            if (allowedStates == null || allowedStates.length == 0)
+                return new BlockInfo[0];
+            BlockInfo[] infos = new BlockInfo[allowedStates.length];
+            for (int i = 0; i < allowedStates.length; i++) {
+                infos[i] = new BlockInfo(Objects.requireNonNull(allowedStates[i]));
+            }
+            return infos;
+        };
     }
 
     public static TraceabilityPredicate abilities(MultiblockAbility<?>... allowedAbilities) {
-        return tilePredicate((state, tile) -> tile instanceof IMultiblockAbilityPart<?> &&
-                ArrayUtils.contains(allowedAbilities, ((IMultiblockAbilityPart<?>) tile).getAbility()),
-                getCandidates(Arrays.stream(allowedAbilities)
-                        .flatMap(ability -> MultiblockAbility.REGISTRY.get(ability).stream())
-                        .toArray(MetaTileEntity[]::new)));
+        List<MetaTileEntity> mtes = new ArrayList<>();
+        for (var ability : allowedAbilities) {
+            mtes.addAll(MultiblockAbility.REGISTRY.get(ability));
+        }
+        return tilePredicate((state, tile) -> tile instanceof IMultiblockAbilityPart<?>part &&
+                ArrayUtils.contains(allowedAbilities, part.getAbility()),
+                getCandidates(mtes.toArray(new MetaTileEntity[0])));
     }
 
     public static TraceabilityPredicate states(IBlockState... allowedStates) {
@@ -252,22 +272,32 @@ public abstract class MultiblockControllerBase extends MetaTileEntity implements
      * Use this predicate for Frames in your Multiblock. Allows for Framed Pipes as well as normal Frame blocks.
      */
     public static TraceabilityPredicate frames(Material... frameMaterials) {
-        return states(Arrays.stream(frameMaterials).map(m -> MetaBlocks.FRAMES.get(m).getBlock(m))
-                .toArray(IBlockState[]::new))
-                        .or(new TraceabilityPredicate(blockWorldState -> {
+        Objects.requireNonNull(frameMaterials);
+        IBlockState[] states = new IBlockState[frameMaterials.length];
+        for (int i = 0; i < frameMaterials.length; i++) {
+            Material m = Objects.requireNonNull(frameMaterials[i]);
+            states[i] = MetaBlocks.FRAMES.get(m).getBlock(m);
+        }
+        return states(states)
+                .or(new TraceabilityPredicate(blockWorldState -> {
                             TileEntity tileEntity = blockWorldState.getTileEntity();
-                            if (!(tileEntity instanceof IPipeTile)) {
+                            if (!(tileEntity instanceof IPipeTile<?, ?> pipeTile)) {
                                 return false;
                             }
-                            IPipeTile<?, ?> pipeTile = (IPipeTile<?, ?>) tileEntity;
                             return ArrayUtils.contains(frameMaterials, pipeTile.getFrameMaterial());
                         }));
     }
 
-    public static TraceabilityPredicate blocks(Block... block) {
+    public static TraceabilityPredicate blocks(Block... blocks) {
+        Objects.requireNonNull(blocks);
+        IBlockState[] states = new IBlockState[blocks.length];
+        for (int i = 0; i < blocks.length; i++) {
+            Block block = Objects.requireNonNull(blocks[i]);
+            states[i] = block.getDefaultState();
+        }
         return new TraceabilityPredicate(
-                blockWorldState -> ArrayUtils.contains(block, blockWorldState.getBlockState().getBlock()),
-                getCandidates(Arrays.stream(block).map(Block::getDefaultState).toArray(IBlockState[]::new)));
+                blockWorldState -> ArrayUtils.contains(blocks, blockWorldState.getBlockState().getBlock()),
+                getCandidates(states));
     }
 
     public static TraceabilityPredicate air() {
