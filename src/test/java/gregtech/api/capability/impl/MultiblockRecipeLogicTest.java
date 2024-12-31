@@ -242,7 +242,7 @@ public class MultiblockRecipeLogicTest {
     }
 
     @Test
-    public void trySearchNewRecipeDistinct() throws ReflectiveOperationException {
+    public void trySearchNewRecipeDistinct() {
         RecipeMaps.BLAST_RECIPES.recipeBuilder()
                 .inputs(new ItemStack(Blocks.COBBLESTONE))
                 .outputs(new ItemStack(Blocks.STONE))
