@@ -110,14 +110,11 @@ public class MultiblockTestUtils {
     public static class Builder {
 
         MultiblockControllerBase mbt;
-        Field controllerTile;
         Map<MultiblockAbility<Object>, List<Object>> multiblockAbilities;
 
         private Builder(MultiblockControllerBase mbt) {
             this.mbt = mbt;
             try {
-                controllerTile = MetaTileEntityMultiblockPart.class.getDeclaredField("controllerTile");
-                controllerTile.setAccessible(true);
                 var abilities = MultiblockControllerBase.class.getDeclaredField("multiblockAbilities");
                 abilities.setAccessible(true);
                 //noinspection unchecked
@@ -126,12 +123,10 @@ public class MultiblockTestUtils {
         }
 
         @SuppressWarnings("unchecked")
-        private void setController(MetaTileEntityMultiblockPart mte) {
-            try {
-                controllerTile.set(mte, mbt);
-            } catch (IllegalAccessException ignored) {}
+        private Builder register(MetaTileEntityMultiblockPart mte) {
             if (mte instanceof IMultiblockAbilityPart<?> part)
                 registerAbility((IMultiblockAbilityPart<Object>) part);
+            return this;
         }
 
         private void registerAbility(IMultiblockAbilityPart<Object> part) {
@@ -145,51 +140,48 @@ public class MultiblockTestUtils {
          * @param isExport - is export
          */
         public Builder item(int tier, boolean isExport) {
-           setController(new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
+           var bus = new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
 
                @Override
                public MultiblockControllerBase getController() {
                    return mbt;
                }
-           });
-           return this;
+           };
+           return register(bus);
         }
 
         public Builder fluid(int tier, boolean isExport) {
-            setController(new MetaTileEntityFluidHatch(gregtechId("fluid"), tier, isExport) {
+            var hatch = new MetaTileEntityFluidHatch(gregtechId("fluid"), tier, isExport) {
 
                 @Override
                 public MultiblockControllerBase getController() {
                     return mbt;
                 }
-            });
-            return this;
+            };
+            return register(hatch);
         }
 
         public Builder quadFluid(int tier, boolean isExport) {
-            setController(new MetaTileEntityMultiFluidHatch(gregtechId("quad"), tier, 4, isExport) {
-
-                @Override
-                public MultiblockControllerBase getController() {
-                    return mbt;
-                }
-            });
-            return this;
+            return multiFluid(tier, 4, isExport);
         }
 
         public Builder nonupleFluid(int tier, boolean isExport) {
-            setController(new MetaTileEntityMultiFluidHatch(gregtechId("nonuple"), tier, 9, isExport) {
+            return multiFluid(tier, 9, isExport);
+        }
+
+        private Builder multiFluid(int tier, int tanks, boolean isExport) {
+            var multi = new MetaTileEntityMultiFluidHatch(gregtechId("multi_fluid:" + tanks), tier, tanks, isExport) {
 
                 @Override
                 public MultiblockControllerBase getController() {
                     return mbt;
                 }
-            });
-            return this;
+            };
+            return register(multi);
         }
 
         public Builder energy(int tier, int amps, boolean isExport) {
-            setController(new MetaTileEntityEnergyHatch(gregtechId("energy"), tier, amps, isExport) {
+            var energy = new MetaTileEntityEnergyHatch(gregtechId("energy"), tier, amps, isExport) {
                 final IEnergyContainer energyContainer = MultiblockTestUtils.createEnergyHandler(this, GTValues.V[tier], amps, isExport);
 
                 @Override
@@ -201,8 +193,8 @@ public class MultiblockTestUtils {
                 public void registerAbilities(List<IEnergyContainer> abilityList) {
                     abilityList.add(energyContainer);
                 }
-            });
-            return this;
+            };
+            return register(energy);
         }
 
         public Builder initializeAbilities() {
