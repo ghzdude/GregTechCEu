@@ -6,18 +6,23 @@ import gregtech.api.capability.impl.EnergyContainerHandler;
 import gregtech.api.capability.impl.MultiblockRecipeLogic;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.MetaTileEntityHolder;
+import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.api.metatileentity.multiblock.IMultiblockAbilityPart;
+import gregtech.api.metatileentity.multiblock.IMultiblockPart;
 import gregtech.api.metatileentity.multiblock.MultiblockAbility;
 import gregtech.api.metatileentity.multiblock.MultiblockControllerBase;
 import gregtech.api.metatileentity.multiblock.RecipeMapMultiblockController;
+import gregtech.api.pattern.BlockPattern;
+import gregtech.api.pattern.FactoryBlockPattern;
 import gregtech.api.recipes.Recipe;
+import gregtech.api.recipes.RecipeMap;
 import gregtech.api.util.world.DummyWorld;
-import gregtech.common.metatileentities.multi.electric.MetaTileEntityElectricBlastFurnace;
+import gregtech.client.renderer.ICubeRenderer;
+import gregtech.client.renderer.texture.Textures;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityEnergyHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityFluidHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityItemBus;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiFluidHatch;
-
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockPart;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,16 +40,15 @@ public class MultiblockTestUtils {
         return new Builder(mbt);
     }
 
-    public static RecipeMapMultiblockController createMultiblock() {
-                // super function calls the world, which equal null in test
-        var mbt = new MetaTileEntityElectricBlastFurnace(gregtechId("electric_blast_furnace")) {
+    public static RecipeMapMultiblockController createMultiblock(RecipeMap<?> map, boolean isDistinct) {
+        // super function calls the world, which equal null in test
+        var mbt = new RecipeMapMultiblockController(gregtechId("multi_test:" + map.unlocalizedName), map) {
 
             @Override
-            public boolean hasMufflerMechanics() {
-                return false;
+            public MetaTileEntity createMetaTileEntity(IGregTechTileEntity tileEntity) {
+                return this;
             }
 
-            // ignore maintenance problems
             @Override
             public boolean hasMaintenanceMechanics() {
                 return false;
@@ -54,7 +58,22 @@ public class MultiblockTestUtils {
             public void reinitializeStructurePattern() {}
 
             @Override
+            protected @NotNull BlockPattern createStructurePattern() {
+                return FactoryBlockPattern.start().build();
+            }
+
+            @Override
+            public ICubeRenderer getBaseTexture(IMultiblockPart sourcePart) {
+                return Textures.HEAT_PROOF_CASING;
+            }
+
+            @Override
             public boolean isDistinct() {
+                return isDistinct;
+            }
+
+            @Override
+            public boolean canBeDistinct() {
                 return true;
             }
 
@@ -117,37 +136,39 @@ public class MultiblockTestUtils {
             try {
                 var abilities = MultiblockControllerBase.class.getDeclaredField("multiblockAbilities");
                 abilities.setAccessible(true);
-                //noinspection unchecked
+                // noinspection unchecked
                 multiblockAbilities = (Map<MultiblockAbility<Object>, List<Object>>) abilities.get(mbt);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {}
         }
 
         @SuppressWarnings("unchecked")
         private Builder register(MetaTileEntityMultiblockPart mte) {
-            if (mte instanceof IMultiblockAbilityPart<?> part)
+            if (mte instanceof IMultiblockAbilityPart<?>part)
                 registerAbility((IMultiblockAbilityPart<Object>) part);
             return this;
         }
 
         private void registerAbility(IMultiblockAbilityPart<Object> part) {
-            List<Object> list = multiblockAbilities.computeIfAbsent(part.getAbility(), objectMultiblockAbility -> new ArrayList<>());
+            List<Object> list = multiblockAbilities.computeIfAbsent(part.getAbility(),
+                    objectMultiblockAbility -> new ArrayList<>());
             part.registerAbilities(list);
         }
 
         /**
          * adds a {@link MetaTileEntityItemBus} to the controller
-         * @param tier tier of the item bus
+         * 
+         * @param tier     tier of the item bus
          * @param isExport - is export
          */
         public Builder item(int tier, boolean isExport) {
-           var bus = new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
+            var bus = new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
 
-               @Override
-               public MultiblockControllerBase getController() {
-                   return mbt;
-               }
-           };
-           return register(bus);
+                @Override
+                public MultiblockControllerBase getController() {
+                    return mbt;
+                }
+            };
+            return register(bus);
         }
 
         public Builder fluid(int tier, boolean isExport) {
@@ -182,7 +203,9 @@ public class MultiblockTestUtils {
 
         public Builder energy(int tier, int amps, boolean isExport) {
             var energy = new MetaTileEntityEnergyHatch(gregtechId("energy"), tier, amps, isExport) {
-                final IEnergyContainer energyContainer = MultiblockTestUtils.createEnergyHandler(this, GTValues.V[tier], amps, isExport);
+
+                final IEnergyContainer energyContainer = MultiblockTestUtils.createEnergyHandler(this, GTValues.V[tier],
+                        amps, isExport);
 
                 @Override
                 public MultiblockControllerBase getController() {

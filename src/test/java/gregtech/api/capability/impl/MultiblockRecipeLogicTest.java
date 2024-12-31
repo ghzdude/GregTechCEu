@@ -19,7 +19,6 @@ import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityFluid
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityItemBus;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMaintenanceHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockPart;
-
 import gregtech.util.MultiblockTestUtils;
 
 import net.minecraft.init.Blocks;
@@ -250,7 +249,7 @@ public class MultiblockRecipeLogicTest {
                 .blastFurnaceTemp(1)
                 .buildAndRegister();
 
-        RecipeMapMultiblockController mbt = MultiblockTestUtils.createMultiblock();
+        RecipeMapMultiblockController mbt = MultiblockTestUtils.createMultiblock(RecipeMaps.BLAST_RECIPES, true);
 
         // Controller and isAttachedToMultiBlock need the world so we fake it here.
         MultiblockTestUtils.builder(mbt)
