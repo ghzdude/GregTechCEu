@@ -22,6 +22,7 @@ import gregtech.client.renderer.texture.Textures;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityEnergyHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityFluidHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityItemBus;
+import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMaintenanceHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiFluidHatch;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMultiblockPart;
 
@@ -40,7 +41,16 @@ public class MultiblockTestUtils {
         return new Builder(mbt);
     }
 
+    public static RecipeMapMultiblockController createMultiblock(RecipeMap<?> map) {
+        return createMultiblock(map, false);
+    }
+
     public static RecipeMapMultiblockController createMultiblock(RecipeMap<?> map, boolean isDistinct) {
+        return createMultiblock(map, isDistinct, false);
+    }
+
+    public static RecipeMapMultiblockController createMultiblock(RecipeMap<?> map, boolean isDistinct,
+                                                                 boolean hasMaintenance) {
         // super function calls the world, which equal null in test
         var mbt = new RecipeMapMultiblockController(gregtechId("multi_test:" + map.unlocalizedName), map) {
 
@@ -51,7 +61,7 @@ public class MultiblockTestUtils {
 
             @Override
             public boolean hasMaintenanceMechanics() {
-                return false;
+                return hasMaintenance;
             }
 
             @Override
@@ -154,11 +164,19 @@ public class MultiblockTestUtils {
             part.registerAbilities(list);
         }
 
+        public Builder defaultSuite() {
+            return item(GTValues.LV, false)
+                    .item(GTValues.LV, true)
+                    .fluid(GTValues.LV, false)
+                    .fluid(GTValues.LV, true)
+                    .energy(GTValues.LV, 2, false);
+        }
+
         /**
          * adds a {@link MetaTileEntityItemBus} to the controller
          * 
          * @param tier     tier of the item bus
-         * @param isExport - is export
+         * @param isExport is export
          */
         public Builder item(int tier, boolean isExport) {
             var bus = new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
@@ -218,6 +236,17 @@ public class MultiblockTestUtils {
                 }
             };
             return register(energy);
+        }
+
+        public Builder maintanence(boolean isConfigurable) {
+            var maint = new MetaTileEntityMaintenanceHatch(gregtechId("maint"), isConfigurable) {
+
+                @Override
+                public MultiblockControllerBase getController() {
+                    return mbt;
+                }
+            };
+            return register(maint);
         }
 
         public Builder initializeAbilities() {
