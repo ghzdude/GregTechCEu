@@ -50,17 +50,6 @@ public class MultiblockRecipeLogicTest {
 
     @Test
     public void trySearchNewRecipe() {
-        World world = DummyWorld.INSTANCE;
-
-        // Create a recipe Map to be used for testing
-        RecipeMap<BlastRecipeBuilder> map = new RecipeMap<>("test_recipemap",
-                3,
-                3,
-                1,
-                1,
-                new BlastRecipeBuilder().EUt(32),
-                false);
-
         RecipeMaps.BLAST_RECIPES.recipeBuilder()
                 .inputs(new ItemStack(Blocks.COBBLESTONE))
                 .outputs(new ItemStack(Blocks.STONE))
@@ -68,120 +57,15 @@ public class MultiblockRecipeLogicTest {
                 .blastFurnaceTemp(1)
                 .buildAndRegister();
 
-        RecipeMapMultiblockController mbt = MetaTileEntities.registerMetaTileEntity(509,
-                new MetaTileEntityElectricBlastFurnace(
-                        // super function calls the world, which equal null in test
-                        gregtechId("electric_blast_furnace")) {
+        RecipeMapMultiblockController mbt = MultiblockTestUtils.createMultiblock(RecipeMaps.BLAST_RECIPES, false);
 
-                    @Override
-                    public boolean canBeDistinct() {
-                        return false;
-                    }
-
-                    @Override
-                    public void reinitializeStructurePattern() {}
-
-                    // function checks for the temperature of the recipe against the coils
-                    @Override
-                    public boolean checkRecipe(@NotNull Recipe recipe, boolean consumeIfSuccess) {
-                        return true;
-                    }
-
-                    // ignore maintenance problems
-                    @Override
-                    public boolean hasMaintenanceMechanics() {
-                        return false;
-                    }
-
-                    // ignore muffler outputs
-                    @Override
-                    public boolean hasMufflerMechanics() {
-                        return false;
-                    }
-                });
-
-        // isValid() check in the dirtying logic requires both a metatileentity and a holder
-        try {
-            Field field = MetaTileEntity.class.getDeclaredField("holder");
-            field.setAccessible(true);
-            field.set(mbt, new MetaTileEntityHolder());
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Field field = MetaTileEntityHolder.class.getDeclaredField("metaTileEntity");
-            field.setAccessible(true);
-            field.set(mbt.getHolder(), mbt);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        ((MetaTileEntityHolder) mbt.getHolder()).setWorld(world);
-
-        // Controller and isAttachedToMultiBlock need the world so we fake it here.
-        MetaTileEntityItemBus importItemBus = new MetaTileEntityItemBus(gregtechId("item_bus.export.lv"), 1, false) {
-
-            @Override
-            public boolean isAttachedToMultiBlock() {
-                return true;
-            }
-
-            @Override
-            public MultiblockControllerBase getController() {
-                return mbt;
-            }
-        };
-        MetaTileEntityItemBus exportItemBus = new MetaTileEntityItemBus(gregtechId("item_bus.export.lv"), 1, true) {
-
-            @Override
-            public boolean isAttachedToMultiBlock() {
-                return true;
-            }
-
-            @Override
-            public MultiblockControllerBase getController() {
-                return mbt;
-            }
-        };
-        MetaTileEntityFluidHatch importFluidBus = new MetaTileEntityFluidHatch(gregtechId("fluid_hatch.import.lv"), 1,
-                false) {
-
-            @Override
-            public boolean isAttachedToMultiBlock() {
-                return true;
-            }
-
-            @Override
-            public MultiblockControllerBase getController() {
-                return mbt;
-            }
-        };
-        MetaTileEntityFluidHatch exportFluidBus = new MetaTileEntityFluidHatch(gregtechId("fluid_hatch.export.lv"), 1,
-                true) {
-
-            @Override
-            public boolean isAttachedToMultiBlock() {
-                return true;
-            }
-
-            @Override
-            public MultiblockControllerBase getController() {
-                return mbt;
-            }
-        };
-
-        // Controller is a private field but we need that information
-        try {
-            Field field = MetaTileEntityMultiblockPart.class.getDeclaredField("controllerTile");
-            field.setAccessible(true);
-            field.set(importItemBus, mbt);
-            field.set(exportItemBus, mbt);
-            field.set(importFluidBus, mbt);
-            field.set(exportFluidBus, mbt);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        MultiblockTestUtils.builder(mbt)
+                .item(GTValues.LV, false)
+                .item(GTValues.LV, true)
+                .fluid(GTValues.LV, false)
+                .fluid(GTValues.LV, true)
+                .energy(GTValues.LV, 2, false)
+                .initializeAbilities();
 
         MultiblockRecipeLogic mbl = MultiblockTestUtils.createRecipeLogic(mbt);
 
