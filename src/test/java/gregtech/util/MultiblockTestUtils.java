@@ -164,6 +164,15 @@ public class MultiblockTestUtils {
             part.registerAbilities(list);
         }
 
+        /**
+         * adds a suite of typical multiblock parts to the multiblock, specifically:
+         * <ul>1 import LV {@link MetaTileEntityItemBus}</ul>
+         * <ul>1 export LV {@link MetaTileEntityItemBus}</ul>
+         * <ul>1 import LV {@link MetaTileEntityFluidHatch}</ul>
+         * <ul>1 export LV {@link MetaTileEntityFluidHatch}</ul>
+         * <ul>1 import 2A LV {@link MetaTileEntityEnergyHatch}</ul>
+         * @return this
+         */
         public Builder defaultSuite() {
             return item(GTValues.LV, false)
                     .item(GTValues.LV, true)
@@ -173,10 +182,10 @@ public class MultiblockTestUtils {
         }
 
         /**
-         * adds a {@link MetaTileEntityItemBus} to the controller
+         * adds a {@link MetaTileEntityItemBus} to the multiblock
          * 
          * @param tier     tier of the item bus
-         * @param isExport is export
+         * @param isExport if the bus is output or input
          */
         public Builder item(int tier, boolean isExport) {
             var bus = new MetaTileEntityItemBus(gregtechId("item"), tier, isExport) {
@@ -189,6 +198,12 @@ public class MultiblockTestUtils {
             return register(bus);
         }
 
+        /**
+         * adds a {@link MetaTileEntityFluidHatch} to the multiblock
+         *
+         * @param tier     tier of the fluid hatch
+         * @param isExport if the hatch is output or input
+         */
         public Builder fluid(int tier, boolean isExport) {
             var hatch = new MetaTileEntityFluidHatch(gregtechId("fluid"), tier, isExport) {
 
@@ -200,10 +215,22 @@ public class MultiblockTestUtils {
             return register(hatch);
         }
 
+        /**
+         * adds a {@link MetaTileEntityMultiFluidHatch} with 4 tanks to the multiblock
+         *
+         * @param tier     tier of the fluid hatch
+         * @param isExport if the hatch is output or input
+         */
         public Builder quadFluid(int tier, boolean isExport) {
             return multiFluid(tier, 4, isExport);
         }
 
+        /**
+         * adds a {@link MetaTileEntityMultiFluidHatch} with 9 tanks to the multiblock
+         *
+         * @param tier     tier of the fluid hatch
+         * @param isExport if the hatch is output or input
+         */
         public Builder nonupleFluid(int tier, boolean isExport) {
             return multiFluid(tier, 9, isExport);
         }
@@ -219,6 +246,13 @@ public class MultiblockTestUtils {
             return register(multi);
         }
 
+        /**
+         * adds a {@link MetaTileEntityEnergyHatch} to the multiblock
+         *
+         * @param tier     tier of the energy hatch
+         * @param amps the amperage of the energy hatch
+         * @param isExport if the hatch is output or input
+         */
         public Builder energy(int tier, int amps, boolean isExport) {
             var energy = new MetaTileEntityEnergyHatch(gregtechId("energy"), tier, amps, isExport) {
 
