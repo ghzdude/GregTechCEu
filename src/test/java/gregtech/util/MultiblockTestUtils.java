@@ -84,10 +84,10 @@ public class MultiblockTestUtils {
         return new MultiblockRecipeLogic(mbt);
     }
 
-    private static IEnergyContainer creativeEnergy(MetaTileEntity mte, long voltage, int amps, boolean isExport) {
+    private static IEnergyContainer createEnergyHandler(MetaTileEntity mte, long voltage, int amps, boolean isExport) {
         return new EnergyContainerHandler(mte, Integer.MAX_VALUE,
-                isExport ? voltage : 0, isExport ? amps : 0,
-                isExport ? 0 : voltage, isExport ? 0 : voltage) {
+                !isExport ? voltage : 0, !isExport ? amps : 0,
+                isExport ? voltage : 0, isExport ? amps : 0) {
 
             @Override
             public long getEnergyStored() {
@@ -96,8 +96,13 @@ public class MultiblockTestUtils {
 
             @Override
             public void setEnergyStored(long energyStored) {
-                super.setEnergyStored(energyStored);
+                if (energyStored > this.energyStored) {
+                    energyInputPerSec += energyStored - this.energyStored;
+                } else {
+                    energyOutputPerSec += this.energyStored - energyStored;
+                }
                 this.energyStored = getEnergyStored();
+                notifyEnergyListener(false);
             }
         };
     }
@@ -185,7 +190,7 @@ public class MultiblockTestUtils {
 
         public Builder energy(int tier, int amps, boolean isExport) {
             setController(new MetaTileEntityEnergyHatch(gregtechId("energy"), tier, amps, isExport) {
-                final IEnergyContainer energyContainer = MultiblockTestUtils.creativeEnergy(this, GTValues.V[tier], amps, isExport);
+                final IEnergyContainer energyContainer = MultiblockTestUtils.createEnergyHandler(this, GTValues.V[tier], amps, isExport);
 
                 @Override
                 public MultiblockControllerBase getController() {
