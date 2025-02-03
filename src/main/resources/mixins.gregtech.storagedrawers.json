@@ -8,6 +8,9 @@
     "maxShiftBy": 10
   },
   "mixins": [
+    "DrawerControllerMixin",
+    "DrawerControllerMixin$RepositoryMixin",
+    "DrawerControllerMixin$SlotRecordMixin",
     "DrawerGroupMixin",
     "DrawerGroupMixin$DrawerDataMixin",
     "DrawerHandlerMixin",
