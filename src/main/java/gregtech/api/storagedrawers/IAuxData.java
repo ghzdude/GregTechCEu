@@ -1,9 +1,9 @@
 package gregtech.api.storagedrawers;
 
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Supplier;
 
 public interface IAuxData {
 
@@ -15,13 +15,12 @@ public interface IAuxData {
     Object gregTech$getData(String key);
 
     @NotNull
-    @SuppressWarnings("unchecked")
-    default <T> T getOrCreateData(String key, Supplier<T> generator) {
-        Object v = gregTech$getData(key);
+    default Int2IntMap getOrCreateData() {
+        Int2IntMap v = (Int2IntMap) gregTech$getData(KEY);
         if (v == null) {
-            v = generator.get();
-            gregTech$setData(key, v);
+            v = new Int2IntArrayMap();
+            gregTech$setData(KEY, v);
         }
-        return (T) v;
+        return v;
     }
 }

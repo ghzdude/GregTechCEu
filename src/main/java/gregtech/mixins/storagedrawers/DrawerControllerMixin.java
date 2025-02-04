@@ -1,7 +1,6 @@
 package gregtech.mixins.storagedrawers;
 
 import gregtech.api.storagedrawers.IAuxData;
-import gregtech.api.storagedrawers.InsertionData;
 import gregtech.api.storagedrawers.SlotGroupAccessor;
 
 import net.minecraft.item.ItemStack;
@@ -80,8 +79,8 @@ public abstract class DrawerControllerMixin {
                     if (!drawerx.isEmpty() && this.testPredicateInsert(drawerx, stack, predicate) &&
                             this.hasAccess(candidateGroup, drawerx)) {
                         if (simulate && drawerx instanceof IAuxData auxData) {
-                            var data = auxData.getOrCreateData(IAuxData.KEY, InsertionData::new);
-                            if (data.inserted + drawerx.getStoredItemCount() == drawerx.getMaxCapacity()) {
+                            int inserted = auxData.getOrCreateData().get(record.gregTech$getSlot());
+                            if (inserted + drawerx.getStoredItemCount() == drawerx.getMaxCapacity()) {
                                 continue;
                             }
                         }

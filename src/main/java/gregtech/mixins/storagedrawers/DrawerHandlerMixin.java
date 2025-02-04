@@ -1,7 +1,6 @@
 package gregtech.mixins.storagedrawers;
 
 import gregtech.api.storagedrawers.IAuxData;
-import gregtech.api.storagedrawers.InsertionData;
 
 import net.minecraft.item.ItemStack;
 
@@ -27,8 +26,7 @@ public abstract class DrawerHandlerMixin {
                 drawer.getAcceptingRemainingCapacity();
 
         if (drawer instanceof IAuxData auxData) {
-            var data = auxData.getOrCreateData(IAuxData.KEY, InsertionData::new);
-            data.inserted = inserted;
+            var data = auxData.getOrCreateData().put(slot, inserted);
         }
     }
 }

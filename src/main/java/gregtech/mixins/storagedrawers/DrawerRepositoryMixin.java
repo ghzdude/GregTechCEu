@@ -1,7 +1,6 @@
 package gregtech.mixins.storagedrawers;
 
 import gregtech.api.storagedrawers.IAuxData;
-import gregtech.api.storagedrawers.InsertionData;
 
 import net.minecraft.item.ItemStack;
 
@@ -24,10 +23,10 @@ public abstract class DrawerRepositoryMixin {
             cancellable = true)
     public void readData(ItemStack stack, boolean simulate, Predicate<ItemStack> predicate,
                          CallbackInfoReturnable<ItemStack> cir,
-                         @Local IDrawer drawer) {
+                         @Local IDrawer drawer, @Local(ordinal = 3) int slot) {
         if (drawer instanceof IAuxData auxData) {
-            var data = auxData.getOrCreateData(IAuxData.KEY, InsertionData::new);
-            if (simulate && data.inserted + drawer.getStoredItemCount() == drawer.getMaxCapacity()) {
+            int inserted = auxData.getOrCreateData().get(slot);
+            if (simulate && inserted + drawer.getStoredItemCount() == drawer.getMaxCapacity()) {
                 cir.setReturnValue(stack);
             }
         }
