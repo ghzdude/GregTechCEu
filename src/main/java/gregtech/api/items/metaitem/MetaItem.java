@@ -25,6 +25,13 @@ import gregtech.common.ConfigHolder;
 import gregtech.common.covers.filter.IFilter;
 import gregtech.common.creativetab.GTCreativeTabs;
 
+import it.unimi.dsi.fastutil.objects.AbstractObject2ObjectMap;
+
+import it.unimi.dsi.fastutil.objects.AbstractObjectSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -43,6 +50,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.ClassInheritanceMultiMap;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -768,6 +776,8 @@ public abstract class MetaItem<T extends MetaItem<?>.MetaValueItem> extends Item
 
         private final List<IItemComponent> allStats = new ArrayList<>();
         private final List<IItemBehaviour> behaviours = new ArrayList<>();
+        private final Map<Class<? extends IItemComponent>, ObjectOpenHashSet<IItemComponent>> classMap = new Object2ObjectOpenHashMap<>();
+
         private IItemUseManager useManager;
         private ItemUIFactory uiManager;
         private IFilter.Factory filterBehavior;
@@ -874,6 +884,20 @@ public abstract class MetaItem<T extends MetaItem<?>.MetaValueItem> extends Item
         public MetaValueItem addComponents(IItemComponent... stats) {
             addItemComponentsInternal(stats);
             return this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <C extends IItemComponent> Set<C> lookup(Class<C> clazz) {
+            return (ObjectOpenHashSet<C>) classMap.computeIfAbsent(clazz, k -> {
+                ObjectOpenHashSet<IItemComponent> set = new ObjectOpenHashSet<>();
+                List<? extends IItemComponent> itr = IItemBehaviour.class.isAssignableFrom(clazz) ? behaviours : allStats;
+                for (IItemComponent component : itr) {
+                    if (component.getClass().isAssignableFrom(clazz)) {
+                        set.add(clazz.cast(component));
+                    }
+                }
+                return set;
+            });
         }
 
         protected void addItemComponentsInternal(IItemComponent... stats) {
